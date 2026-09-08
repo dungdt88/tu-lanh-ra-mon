@@ -15,6 +15,10 @@ npm run build    # build production
 npm run lint
 ```
 
+> Nếu gặp lỗi `Cannot find module '../lightningcss.darwin-arm64.node'` (hoặc lỗi
+> native tương tự): `node_modules` đang chứa binary của HĐH khác. Chạy lại
+> `rm -rf node_modules .next && npm install` trên chính máy đang dev.
+
 ## Stack
 
 - Next.js 16 (App Router) + TypeScript
