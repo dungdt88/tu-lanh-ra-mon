@@ -1,11 +1,10 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
-import { ChefHat, Search, Trash2 } from "lucide-react";
+import { UtensilsCrossed, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/page-header";
+import { AddIngredient } from "@/components/add-ingredient";
 import {
   CATEGORY_LABEL,
   CATEGORY_ORDER,
@@ -14,22 +13,11 @@ import {
 import { usePantry } from "@/lib/pantry-store";
 import { cn } from "@/lib/utils";
 
-function normalize(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/đ/g, "d")
-    .toLowerCase();
-}
-
 export default function PantryPage() {
-  const { items, has, toggle, clear, hydrated } = usePantry();
-  const [query, setQuery] = React.useState("");
+  const { items, customs, has, toggle, clear, removeCustom, hydrated } =
+    usePantry();
 
-  const filtered = React.useMemo(() => {
-    const q = normalize(query.trim());
-    return INGREDIENTS.filter((i) => !q || normalize(i.name).includes(q));
-  }, [query]);
+  const ownedCustoms = customs.filter((c) => items.includes(c.id));
 
   return (
     <div className="space-y-4">
@@ -48,19 +36,37 @@ export default function PantryPage() {
         }
       />
 
-      <div className="space-y-4 px-4">
-        <div className="relative">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Tìm nguyên liệu…"
-            className="pl-9"
-          />
-        </div>
+      <div className="space-y-5 px-4">
+        <AddIngredient />
+
+        {ownedCustoms.length > 0 && (
+          <section className="space-y-2">
+            <h2 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+              Bạn tự thêm
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {ownedCustoms.map((ingredient) => (
+                <span
+                  key={ingredient.id}
+                  className="border-primary bg-primary text-primary-foreground flex items-center gap-1.5 rounded-full border py-1.5 pr-2 pl-3 text-sm"
+                >
+                  {ingredient.emoji} {ingredient.name}
+                  <button
+                    type="button"
+                    aria-label={`Xoá ${ingredient.name}`}
+                    onClick={() => removeCustom(ingredient.id)}
+                    className="hover:bg-background/20 rounded-full p-0.5"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
 
         {CATEGORY_ORDER.map((category) => {
-          const list = filtered.filter((i) => i.category === category);
+          const list = INGREDIENTS.filter((i) => i.category === category);
           if (list.length === 0) return null;
 
           return (
@@ -103,7 +109,7 @@ export default function PantryPage() {
           disabled={items.length === 0}
         >
           <Link href="/">
-            <ChefHat /> Xem mâm cơm với {items.length} nguyên liệu
+            <UtensilsCrossed /> Xem mâm cơm với {items.length} nguyên liệu
           </Link>
         </Button>
       </div>

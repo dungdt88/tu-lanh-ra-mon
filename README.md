@@ -54,6 +54,9 @@ src/
 - "Đổi mâm khác" để xoay vòng phương án, không phải rời trang.
 - Quét tủ: chạm nút quét -> chọn ảnh -> "Xem mâm cơm" là về thẳng trang chủ.
 - Mâm khác và món lẻ nằm sau nút "Xem thêm" để màn đầu không bị dài.
+- Điền nguyên liệu tự do: gõ không dấu cũng được. Trùng tên gọi khác ("đậu phụ",
+  "thịt heo") thì map về đúng nguyên liệu trong danh mục để engine gợi ý vẫn hiểu;
+  thứ hoàn toàn mới lưu thành nguyên liệu riêng của người dùng (`custom-<slug>`).
 
 ## Cách gợi ý hoạt động
 

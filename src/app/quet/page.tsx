@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/page-header";
+import { AddIngredient } from "@/components/add-ingredient";
 import { usePantry } from "@/lib/pantry-store";
 
 type Detected = {
@@ -164,6 +165,11 @@ export default function ScanPage() {
                   </span>
                 </Label>
               ))}
+            </div>
+
+            <div className="bg-muted/50 space-y-2 rounded-xl p-3">
+              <p className="text-xs font-medium">Thiếu thứ gì thì điền thêm</p>
+              <AddIngredient placeholder="vd: đậu phụ, cải chíp…" />
             </div>
 
             <Button className="w-full" size="lg" onClick={confirm}>

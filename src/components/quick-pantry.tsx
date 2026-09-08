@@ -1,8 +1,17 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
-import { INGREDIENTS } from "@/data/ingredients";
+import { ChevronRight, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { AddIngredient } from "@/components/add-ingredient";
 import { usePantry } from "@/lib/pantry-store";
 import { cn } from "@/lib/utils";
 
@@ -27,9 +36,10 @@ const QUICK_IDS = [
 ];
 
 export function QuickPantry() {
-  const { has, toggle, items, hydrated } = usePantry();
+  const { has, toggle, resolve, items, hydrated } = usePantry();
+  const [open, setOpen] = React.useState(false);
 
-  // Nguyên liệu đã chọn luôn hiện trước, kể cả khi không nằm trong danh sách nhanh
+  // Nguyên liệu đã chọn (kể cả tự thêm) luôn hiện trước
   const ids = Array.from(new Set([...items, ...QUICK_IDS]));
 
   return (
@@ -40,6 +50,7 @@ export function QuickPantry() {
         </h2>
         <Link
           href="/tu-lanh"
+          prefetch
           className="text-muted-foreground hover:text-foreground flex items-center text-xs"
         >
           Tất cả nguyên liệu <ChevronRight className="size-3.5" />
@@ -47,8 +58,24 @@ export function QuickPantry() {
       </div>
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger className="border-primary text-primary hover:bg-primary/10 flex shrink-0 items-center gap-1 rounded-full border border-dashed px-3 py-1.5 text-sm">
+            <Plus className="size-4" /> Điền nguyên liệu
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Điền nguyên liệu</DialogTitle>
+              <DialogDescription>
+                Gõ tên bất kỳ, không cần dấu. Thứ không có trong danh mục sẽ
+                được lưu riêng cho bạn.
+              </DialogDescription>
+            </DialogHeader>
+            <AddIngredient autoFocus />
+          </DialogContent>
+        </Dialog>
+
         {ids.map((id) => {
-          const ingredient = INGREDIENTS.find((i) => i.id === id);
+          const ingredient = resolve(id);
           if (!ingredient) return null;
           const active = hydrated && has(id);
           return (

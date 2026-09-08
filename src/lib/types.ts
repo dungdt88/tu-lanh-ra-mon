@@ -1,5 +1,12 @@
 export type IngredientCategory =
-  "thit" | "hai-san" | "rau" | "cu-qua" | "trung-sua" | "kho" | "gia-vi";
+  | "thit"
+  | "hai-san"
+  | "rau"
+  | "cu-qua"
+  | "trung-sua"
+  | "kho"
+  | "gia-vi"
+  | "khac";
 
 export type Ingredient = {
   id: string;
@@ -8,6 +15,10 @@ export type Ingredient = {
   category: IngredientCategory;
   /** Coi như luôn có sẵn trong bếp, không tính vào danh sách đi chợ */
   staple?: boolean;
+  /** Tên gọi khác để tìm kiếm: "thịt heo", "đậu phụ"... */
+  aliases?: string[];
+  /** Người dùng tự thêm, không nằm trong danh mục gốc */
+  custom?: boolean;
 };
 
 export type MealSlot = "trua" | "toi";
