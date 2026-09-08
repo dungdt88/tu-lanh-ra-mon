@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { searchIngredients } from "@/data/ingredients";
 import { usePantry } from "@/lib/pantry-store";
 import { capitalize } from "@/lib/text";
+import { cn } from "@/lib/utils";
 
 /**
  * Ô điền nguyên liệu: gõ tên bất kỳ (không cần dấu).
@@ -23,6 +24,7 @@ export function AddIngredient({
   placeholder?: string;
 }) {
   const { addByName, add, has, hydrated } = usePantry();
+  const inputRef = React.useRef<HTMLInputElement>(null);
   const [query, setQuery] = React.useState("");
   const [justAdded, setJustAdded] = React.useState<string | null>(null);
 
@@ -45,7 +47,11 @@ export function AddIngredient({
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          if (!trimmed) return;
+          // Chưa gõ gì thì đưa con trỏ vào ô nhập thay vì trơ ra
+          if (!trimmed) {
+            inputRef.current?.focus();
+            return;
+          }
           commit(addByName(trimmed), capitalize(trimmed));
         }}
         className="flex gap-2"
@@ -53,6 +59,7 @@ export function AddIngredient({
         <div className="relative flex-1">
           <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <Input
+            ref={inputRef}
             value={query}
             autoFocus={autoFocus}
             onChange={(event) => setQuery(event.target.value)}
@@ -61,7 +68,7 @@ export function AddIngredient({
             enterKeyHint="done"
           />
         </div>
-        <Button type="submit" disabled={!trimmed}>
+        <Button type="submit">
           <Plus /> Thêm
         </Button>
       </form>
@@ -80,12 +87,16 @@ export function AddIngredient({
               <button
                 key={ingredient.id}
                 type="button"
-                disabled={owned}
                 onClick={() => {
                   add(ingredient.id);
                   commit(ingredient.id, ingredient.name);
                 }}
-                className="bg-background hover:bg-muted flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm disabled:opacity-50"
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm",
+                  owned
+                    ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                    : "bg-background hover:bg-muted",
+                )}
               >
                 <span>{ingredient.emoji}</span>
                 {ingredient.name}
