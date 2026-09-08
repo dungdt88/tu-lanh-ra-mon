@@ -30,7 +30,7 @@ export function DishDetail({ dish }: { dish: Dish }) {
       <PageHeader
         title={dish.name}
         subtitle={ROLE_LABEL[dish.role]}
-        backHref="/goi-y"
+        backHref="/"
       />
 
       <div className="space-y-5 px-4">

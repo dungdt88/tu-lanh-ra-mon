@@ -54,7 +54,7 @@ export default function ScanPage() {
 
   function confirm() {
     add(...Array.from(picked));
-    router.push("/tu-lanh");
+    router.push("/");
   }
 
   return (
@@ -167,7 +167,7 @@ export default function ScanPage() {
             </div>
 
             <Button className="w-full" size="lg" onClick={confirm}>
-              Thêm {picked.size} nguyên liệu vào tủ lạnh
+              Xem mâm cơm với {picked.size} nguyên liệu
             </Button>
           </section>
         )}

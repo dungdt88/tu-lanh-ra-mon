@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   });
 
   // giả lập độ trễ của model
-  await new Promise((resolve) => setTimeout(resolve, 900));
+  await new Promise((resolve) => setTimeout(resolve, 450));
 
   return NextResponse.json({
     mock: true,

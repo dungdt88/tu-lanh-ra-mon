@@ -2,15 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Camera, ChefHat, Home, Refrigerator } from "lucide-react";
+import { Camera, Refrigerator, UtensilsCrossed } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePantry } from "@/lib/pantry-store";
 
 const ITEMS = [
-  { href: "/", label: "Trang chủ", icon: Home },
+  { href: "/", label: "Hôm nay ăn gì", icon: UtensilsCrossed },
   { href: "/quet", label: "Quét tủ", icon: Camera },
   { href: "/tu-lanh", label: "Tủ lạnh", icon: Refrigerator },
-  { href: "/goi-y", label: "Gợi ý", icon: ChefHat },
 ];
 
 export function BottomNav() {
@@ -19,7 +18,7 @@ export function BottomNav() {
 
   return (
     <nav className="bg-background/95 fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-lg border-t backdrop-blur">
-      <ul className="grid grid-cols-4">
+      <ul className="grid grid-cols-3">
         {ITEMS.map(({ href, label, icon: Icon }) => {
           const active =
             href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -27,6 +26,7 @@ export function BottomNav() {
             <li key={href}>
               <Link
                 href={href}
+                prefetch
                 className={cn(
                   "flex flex-col items-center gap-1 px-2 py-3 text-[11px] font-medium transition-colors",
                   active

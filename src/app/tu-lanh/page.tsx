@@ -102,8 +102,8 @@ export default function PantryPage() {
           className="w-full"
           disabled={items.length === 0}
         >
-          <Link href="/goi-y">
-            <ChefHat /> Gợi ý món với {items.length} nguyên liệu
+          <Link href="/">
+            <ChefHat /> Xem mâm cơm với {items.length} nguyên liệu
           </Link>
         </Button>
       </div>

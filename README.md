@@ -30,10 +30,9 @@ npm run lint
 ```
 src/
   app/
-    page.tsx              Trang chủ: tủ lạnh hiện có + gợi ý nhanh
+    page.tsx              Trang chủ = mâm cơm hôm nay (mở app là thấy ngay)
     quet/                 Chụp/chọn ảnh tủ lạnh -> nhận diện nguyên liệu
-    tu-lanh/              Quản lý nguyên liệu đang có
-    goi-y/                Mâm cơm gợi ý theo bữa trưa/tối + món lẻ
+    tu-lanh/              Toàn bộ danh mục nguyên liệu
     mon/[slug]/           Chi tiết món: nguyên liệu, các bước, dinh dưỡng
     api/recognize/        API nhận diện nguyên liệu (BẢN MOCK)
   components/
@@ -47,6 +46,14 @@ src/
     pantry-store.ts(x)    Store tủ lạnh (useSyncExternalStore + localStorage)
     types.ts
 ```
+
+## Nguyên tắc UX: ít chạm nhất có thể
+
+- Mở app là có sẵn mâm cơm cho bữa gần nhất (trưa trước 14h, sau đó là tối) — 0 chạm.
+- Hàng chip nguyên liệu ngay trên trang chủ: 1 chạm là gợi ý đổi theo.
+- "Đổi mâm khác" để xoay vòng phương án, không phải rời trang.
+- Quét tủ: chạm nút quét -> chọn ảnh -> "Xem mâm cơm" là về thẳng trang chủ.
+- Mâm khác và món lẻ nằm sau nút "Xem thêm" để màn đầu không bị dài.
 
 ## Cách gợi ý hoạt động
 
