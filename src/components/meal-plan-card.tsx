@@ -1,10 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { Clock, ShoppingBasket } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ingredientName } from "@/data/ingredients";
 import { ROLE_LABEL } from "@/data/dishes";
+import { useCatalog } from "@/lib/catalog-context";
 import type { MealPlan } from "@/lib/types";
 
 export function MealPlanCard({
@@ -14,6 +16,8 @@ export function MealPlanCard({
   plan: MealPlan;
   index: number;
 }) {
+  const { ingredientName } = useCatalog();
+
   return (
     <Card className="gap-3">
       <CardHeader className="pb-0">

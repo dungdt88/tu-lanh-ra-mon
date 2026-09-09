@@ -6,17 +6,15 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AddIngredient } from "@/components/add-ingredient";
-import {
-  CATEGORY_LABEL,
-  CATEGORY_ORDER,
-  INGREDIENTS,
-} from "@/data/ingredients";
+import { CATEGORY_LABEL, CATEGORY_ORDER } from "@/data/ingredients";
+import { useCatalog } from "@/lib/catalog-context";
 import { usePantry } from "@/lib/pantry-store";
 import { cn } from "@/lib/utils";
 
 export default function PantryPage() {
   const { items, customs, has, toggle, clear, removeCustom, hydrated } =
     usePantry();
+  const { ingredients } = useCatalog();
 
   const ownedCustoms = customs.filter((c) => items.includes(c.id));
 
@@ -71,7 +69,7 @@ export default function PantryPage() {
         )}
 
         {CATEGORY_ORDER.map((category) => {
-          const list = INGREDIENTS.filter((i) => i.category === category);
+          const list = ingredients.filter((i) => i.category === category);
           if (list.length === 0) return null;
 
           return (

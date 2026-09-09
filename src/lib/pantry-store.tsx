@@ -1,9 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { getIngredient, findIngredientByName } from "@/data/ingredients";
 import { capitalize, slugify } from "@/lib/text";
-import type { Ingredient } from "@/lib/types";
 
 const STORAGE_KEY = "tlrm.pantry.v1";
 const CUSTOM_KEY = "tlrm.custom.v1";
@@ -91,22 +89,12 @@ export function usePantry() {
     const set = new Set(items);
     const customMap = new Map(customs.map((c) => [c.id, c]));
 
-    /** Tra cứu nguyên liệu ở cả danh mục gốc lẫn phần tự điền */
-    const resolve = (id: string): Ingredient | undefined => {
-      const known = getIngredient(id);
-      if (known) return known;
-      const custom = customMap.get(id);
-      return custom
-        ? { ...custom, category: "khac" as const, custom: true }
-        : undefined;
-    };
-
     return {
       items,
       customs,
       set,
       hydrated,
-      resolve,
+      customMap,
       has: (id: string) => set.has(id),
       add: (...ids: string[]) => writeItems([...items, ...ids]),
       remove: (id: string) => writeItems(items.filter((x) => x !== id)),
@@ -118,23 +106,16 @@ export function usePantry() {
       clear: () => writeItems([]),
 
       /**
-       * Thêm nguyên liệu người dùng gõ tay.
-       * Nếu trùng tên (kể cả tên gọi khác) với danh mục gốc thì dùng luôn
-       * món trong danh mục để engine gợi ý vẫn hiểu được.
+       * Thêm nguyên liệu người dùng tự gõ (không có trong danh mục).
+       * Việc so khớp với danh mục do phía gọi làm, vì danh mục có thể
+       * đến từ Supabase chứ không chỉ từ src/data.
        */
-      addByName: (rawName: string): string | null => {
+      addCustom: (rawName: string): string | null => {
         const name = capitalize(rawName);
-        if (!name) return null;
+        const slug = slugify(name);
+        if (!name || !slug) return null;
 
-        const known = findIngredientByName(name);
-        if (known) {
-          writeItems([...items, known.id]);
-          return known.id;
-        }
-
-        const id = `custom-${slugify(name)}`;
-        if (!id.replace("custom-", "")) return null;
-
+        const id = `custom-${slug}`;
         const nextCustoms = customMap.has(id)
           ? customs
           : [...customs, { id, name, emoji: "🥘" }];

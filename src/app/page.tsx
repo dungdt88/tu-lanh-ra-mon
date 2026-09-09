@@ -13,10 +13,10 @@ import { MealPlanCard } from "@/components/meal-plan-card";
 import { QuickPantry } from "@/components/quick-pantry";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ROLE_LABEL } from "@/data/dishes";
-import { ingredientName } from "@/data/ingredients";
+import { useCatalog } from "@/lib/catalog-context";
 import { usePantry } from "@/lib/pantry-store";
 import { useMounted } from "@/lib/use-mounted";
-import { buildMealPlans, rankDishes } from "@/lib/suggest";
+import { buildMealPlans, rankDishes, stapleIds } from "@/lib/suggest";
 import type { MealSlot } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +27,8 @@ const SLOTS: { value: MealSlot; label: string }[] = [
 
 export default function HomePage() {
   const { set, items, hydrated } = usePantry();
+  const { dishes: allDishes, ingredients, ingredientName } = useCatalog();
+  const staples = React.useMemo(() => stapleIds(ingredients), [ingredients]);
   const mounted = useMounted();
   const [chosenSlot, setChosenSlot] = React.useState<MealSlot | null>(null);
   const [offset, setOffset] = React.useState(0);
@@ -38,16 +40,17 @@ export default function HomePage() {
     chosenSlot ?? (mounted && new Date().getHours() >= 14 ? "toi" : "trua");
 
   const plans = React.useMemo(
-    () => buildMealPlans(set, { slot, count: 5 }),
-    [set, slot],
+    () => buildMealPlans(allDishes, set, staples, { slot, count: 5 }),
+    [allDishes, set, staples, slot],
   );
 
   const featured = plans.length > 0 ? plans[offset % plans.length] : null;
   const others = plans.filter((p) => p.id !== featured?.id).slice(0, 2);
 
   const dishes = React.useMemo(
-    () => rankDishes(set, { slot, maxMissing: 1 }).slice(0, 8),
-    [set, slot],
+    () =>
+      rankDishes(allDishes, set, staples, { slot, maxMissing: 1 }).slice(0, 8),
+    [allDishes, set, staples, slot],
   );
 
   return (

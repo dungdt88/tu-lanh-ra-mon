@@ -13,6 +13,7 @@ npm install
 npm run dev      # http://localhost:3000
 npm run build    # build production
 npm run lint
+npm run dev:lan  # mở cho điện thoại cùng wifi: http://<ip-máy>:3000
 ```
 
 > Nếu gặp lỗi `Cannot find module '../lightningcss.darwin-arm64.node'` (hoặc lỗi
@@ -28,9 +29,39 @@ npm run lint
   tôn trọng safe-area của iPhone; từ `md` trở lên khung rộng hơn và bố cục 2 cột
 - Dữ liệu mock trong repo (chưa gắn DB), state tủ lạnh lưu ở `localStorage`
 
+## Cài Supabase (làm 1 lần)
+
+App chạy được ngay cả khi chưa có Supabase — lúc đó nó đọc dữ liệu mock trong
+`src/data`. Khi có đủ 2 biến môi trường thì tự chuyển sang đọc DB.
+
+1. Tạo project ở https://supabase.com (Region gần nhất: Singapore).
+2. Project Settings → API, copy `Project URL` và `anon public key`.
+3. Tạo file `.env.local` ở gốc repo (xem `.env.example`):
+
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
+   ```
+
+4. SQL Editor → New query → dán toàn bộ `supabase/migrations/0001_init.sql` → Run.
+5. SQL Editor → New query → dán toàn bộ `supabase/seed.sql` → Run.
+   (File seed sinh từ `src/data`, chạy lại bằng `npm run seed:gen` sau khi sửa món.)
+6. `npm run db:check` để kiểm tra kết nối và số dòng từng bảng.
+7. `npm run dev` — log server sẽ không còn dòng "tạm dùng dữ liệu mock".
+
+Bảng dữ liệu cá nhân (`profiles`, `pantry_items`, `cook_logs`) đã bật RLS: mỗi
+người chỉ đọc/ghi được dữ liệu của chính mình; danh mục món và nguyên liệu thì
+ai cũng đọc được nhưng chỉ `service_role` mới ghi.
+
 ## Cấu trúc
 
 ```
+supabase/
+  migrations/0001_init.sql  Schema + RLS
+  seed.sql                  Dữ liệu danh mục, sinh từ src/data
+scripts/
+  generate-seed.ts          npm run seed:gen
+  check-db.ts               npm run db:check
 src/
   app/
     page.tsx              Trang chủ = mâm cơm hôm nay (mở app là thấy ngay)
@@ -45,6 +76,9 @@ src/
     ingredients.ts        Danh mục nguyên liệu (có cờ `staple` cho gia vị luôn có)
     dishes.ts             Công thức món ăn (mock data)
   lib/
+    repo/catalog.ts       Nguồn dữ liệu: Supabase nếu có env, không thì src/data
+    catalog-context.tsx   Đưa danh mục xuống các component client
+    supabase/             client (browser) + server (SSR cookie) + kiểu dữ liệu
     suggest.ts            Chấm điểm món + dựng mâm cơm (mặn + canh + rau)
     pantry-store.ts(x)    Store tủ lạnh (useSyncExternalStore + localStorage)
     types.ts
@@ -71,7 +105,7 @@ giữa các mâm, và tính tổng thời gian theo kiểu nấu song song.
 ## Việc còn lại (roadmap ngắn)
 
 1. Thay `src/app/api/recognize/route.ts` bằng vision API thật (giữ nguyên response shape).
-2. Chuyển `src/data/*` sang DB (Supabase/Postgres) — UI chỉ gọi `getDishes()/getDishBySlug()`.
-3. Lịch sử món đã nấu để tránh lặp trong tuần + kế hoạch cả tuần.
+2. Đăng nhập Supabase + đồng bộ tủ lạnh lên `pantry_items` (bảng đã có sẵn).
+3. Ghi `cook_logs` khi nấu xong để tránh lặp món trong tuần + kế hoạch cả tuần.
 4. Danh sách đi chợ gộp theo mâm đã chọn.
 5. Tài khoản người dùng, đồng bộ tủ lạnh nhiều thiết bị.

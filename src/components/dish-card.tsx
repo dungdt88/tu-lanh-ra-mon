@@ -1,9 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { Clock, Flame, ShoppingBasket, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ingredientName } from "@/data/ingredients";
 import { ROLE_LABEL } from "@/data/dishes";
+import { useCatalog } from "@/lib/catalog-context";
 import type { DishMatch } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +18,7 @@ export function DishCard({
   className?: string;
   showRole?: boolean;
 }) {
+  const { ingredientName } = useCatalog();
   const { dish, missing, coverage } = match;
 
   return (

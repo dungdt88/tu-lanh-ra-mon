@@ -6,6 +6,8 @@ import "@fontsource/be-vietnam-pro/700.css";
 import "./globals.css";
 import { BottomNav } from "@/components/bottom-nav";
 import { ThemeProvider } from "@/components/theme-provider";
+import { CatalogProvider } from "@/lib/catalog-context";
+import { getCatalog } from "@/lib/repo/catalog";
 
 export const metadata: Metadata = {
   title: "Tủ Lạnh Ra Món",
@@ -24,18 +26,23 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Đọc danh mục ở server: có Supabase thì lấy từ DB, chưa có thì dùng src/data
+  const catalog = await getCatalog();
+
   return (
     <html lang="vi" className="h-full" suppressHydrationWarning>
       {/* suppressHydrationWarning: tiện ích trình duyệt hay chèn thuộc tính vào body */}
       <body className="bg-muted/40 min-h-full" suppressHydrationWarning>
         <ThemeProvider>
-          <div className="bg-background mx-auto flex min-h-dvh w-full max-w-lg flex-col md:max-w-2xl md:border-x">
-            <main className="flex-1 pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
-              {children}
-            </main>
-            <BottomNav />
-          </div>
+          <CatalogProvider catalog={catalog}>
+            <div className="bg-background mx-auto flex min-h-dvh w-full max-w-lg flex-col md:max-w-2xl md:border-x">
+              <main className="flex-1 pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
+                {children}
+              </main>
+              <BottomNav />
+            </div>
+          </CatalogProvider>
         </ThemeProvider>
       </body>
     </html>

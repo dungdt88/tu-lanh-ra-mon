@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { AddIngredient } from "@/components/add-ingredient";
+import { useCatalog } from "@/lib/catalog-context";
 import { usePantry } from "@/lib/pantry-store";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +37,11 @@ const QUICK_IDS = [
 ];
 
 export function QuickPantry() {
-  const { has, toggle, resolve, items, hydrated } = usePantry();
+  const { has, toggle, customMap, items, hydrated } = usePantry();
+  const { getIngredient } = useCatalog();
+
+  /** Nguyên liệu có thể nằm trong danh mục hoặc do người dùng tự thêm */
+  const resolve = (id: string) => getIngredient(id) ?? customMap.get(id);
   const [open, setOpen] = React.useState(false);
 
   // Nguyên liệu đã chọn (kể cả tự thêm) luôn hiện trước

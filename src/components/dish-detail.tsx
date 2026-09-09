@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/page-header";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ROLE_LABEL } from "@/data/dishes";
-import { getIngredient } from "@/data/ingredients";
+import { useCatalog } from "@/lib/catalog-context";
 import { usePantry } from "@/lib/pantry-store";
 import type { Dish } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,7 @@ const DIFFICULTY_LABEL = ["Rất dễ", "Vừa tay", "Cần chút nghề"];
 
 export function DishDetail({ dish }: { dish: Dish }) {
   const { has, add, hydrated } = usePantry();
+  const { getIngredient } = useCatalog();
 
   const rows = [
     ...dish.core.map((id) => ({ id, required: true })),

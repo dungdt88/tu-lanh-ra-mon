@@ -4,7 +4,7 @@ import * as React from "react";
 import { Check, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getIngredient, searchIngredients } from "@/data/ingredients";
+import { useCatalog } from "@/lib/catalog-context";
 import { usePantry } from "@/lib/pantry-store";
 import { capitalize } from "@/lib/text";
 import { cn } from "@/lib/utils";
@@ -23,16 +23,34 @@ export function AddIngredient({
   onAdded?: (id: string) => void;
   placeholder?: string;
 }) {
-  const { addByName, add, has, hydrated } = usePantry();
+  const { addCustom, add, has, hydrated } = usePantry();
+  const { searchIngredients, findIngredientByName, getIngredient } =
+    useCatalog();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [query, setQuery] = React.useState("");
   const [justAdded, setJustAdded] = React.useState<string | null>(null);
 
-  const suggestions = React.useMemo(() => searchIngredients(query), [query]);
+  const suggestions = React.useMemo(
+    () => searchIngredients(query),
+    [searchIngredients, query],
+  );
   const trimmed = query.trim();
   const exactInList = suggestions.some(
     (item) => item.name.toLowerCase() === trimmed.toLowerCase(),
   );
+
+  /**
+   * Gõ tên tự do: khớp danh mục (kể cả tên gọi khác) thì thêm đúng nguyên liệu
+   * đó để engine gợi ý hiểu được, không khớp thì lưu thành nguyên liệu riêng.
+   */
+  function addTyped(text: string): string | null {
+    const known = findIngredientByName(text);
+    if (known) {
+      add(known.id);
+      return known.id;
+    }
+    return addCustom(text);
+  }
 
   function commit(id: string | null, label: string) {
     if (!id) return;
@@ -53,7 +71,7 @@ export function AddIngredient({
             inputRef.current?.focus();
             return;
           }
-          commit(addByName(trimmed), capitalize(trimmed));
+          commit(addTyped(trimmed), capitalize(trimmed));
         }}
         className="flex gap-2"
       >
@@ -109,7 +127,7 @@ export function AddIngredient({
           {!exactInList && (
             <button
               type="button"
-              onClick={() => commit(addByName(trimmed), capitalize(trimmed))}
+              onClick={() => commit(addTyped(trimmed), capitalize(trimmed))}
               className="border-primary text-primary hover:bg-primary/10 flex min-h-10 items-center gap-1.5 rounded-full border border-dashed px-3 py-1.5 text-sm"
             >
               <Plus className="size-3.5" /> Thêm “{capitalize(trimmed)}”

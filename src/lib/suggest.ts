@@ -1,25 +1,33 @@
-import { DISHES } from "@/data/dishes";
-import { INGREDIENT_MAP } from "@/data/ingredients";
 import type {
   Dish,
   DishMatch,
+  Ingredient,
   MealPlan,
   MealSlot,
   Nutrition,
 } from "@/lib/types";
 
-function isStaple(id: string): boolean {
-  return INGREDIENT_MAP.get(id)?.staple === true;
-}
-
 /** Gia vị cơ bản coi như trong bếp lúc nào cũng có */
-function available(id: string, pantry: Set<string>): boolean {
-  return pantry.has(id) || isStaple(id);
+function available(
+  id: string,
+  pantry: Set<string>,
+  staples: Set<string>,
+): boolean {
+  return pantry.has(id) || staples.has(id);
 }
 
-export function matchDish(dish: Dish, pantry: Set<string>): DishMatch {
-  const have = dish.core.filter((id) => available(id, pantry));
-  const missing = dish.core.filter((id) => !available(id, pantry));
+/** Tập id gia vị mặc định luôn có, lấy từ danh mục đang dùng (mock hoặc DB) */
+export function stapleIds(ingredients: Ingredient[]): Set<string> {
+  return new Set(ingredients.filter((i) => i.staple).map((i) => i.id));
+}
+
+export function matchDish(
+  dish: Dish,
+  pantry: Set<string>,
+  staples: Set<string>,
+): DishMatch {
+  const have = dish.core.filter((id) => available(id, pantry, staples));
+  const missing = dish.core.filter((id) => !available(id, pantry, staples));
   const bonus = dish.optional.filter((id) => pantry.has(id));
   const coverage = dish.core.length === 0 ? 1 : have.length / dish.core.length;
 
@@ -50,15 +58,18 @@ export type RankOptions = {
 };
 
 export function rankDishes(
+  dishes: Dish[],
   pantry: Set<string>,
+  staples: Set<string>,
   options: RankOptions = {},
 ): DishMatch[] {
   const { slot, role, maxMinutes, onlyCookable, maxMissing } = options;
 
-  return DISHES.filter((d) => (slot ? d.slots.includes(slot) : true))
+  return dishes
+    .filter((d) => (slot ? d.slots.includes(slot) : true))
     .filter((d) => (role ? d.role === role : true))
     .filter((d) => (maxMinutes ? d.minutes <= maxMinutes : true))
-    .map((d) => matchDish(d, pantry))
+    .map((d) => matchDish(d, pantry, staples))
     .filter((m) => (onlyCookable ? m.missing.length === 0 : true))
     .filter((m) =>
       maxMissing === undefined ? true : m.missing.length <= maxMissing,
@@ -98,15 +109,17 @@ export type PlanOptions = {
  * Trả về nhiều phương án khác nhau để mẹ đổi món.
  */
 export function buildMealPlans(
+  dishes: Dish[],
   pantry: Set<string>,
+  staples: Set<string>,
   { slot, maxMinutes, count = 3 }: PlanOptions,
 ): MealPlan[] {
   // Không lọc theo số nguyên liệu thiếu: điểm số đã ưu tiên món nấu được ngay,
   // nhờ vậy luôn đủ món để dựng nhiều mâm khác nhau.
   const byRole = {
-    man: rankDishes(pantry, { slot, role: "man" }),
-    canh: rankDishes(pantry, { slot, role: "canh" }),
-    rau: rankDishes(pantry, { slot, role: "rau" }),
+    man: rankDishes(dishes, pantry, staples, { slot, role: "man" }),
+    canh: rankDishes(dishes, pantry, staples, { slot, role: "canh" }),
+    rau: rankDishes(dishes, pantry, staples, { slot, role: "rau" }),
   };
 
   const plans: MealPlan[] = [];
