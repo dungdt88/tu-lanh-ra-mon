@@ -23,6 +23,9 @@ npm run lint
 
 - Next.js 16 (App Router) + TypeScript
 - Tailwind CSS v4 + shadcn/ui (new-york), font Be Vietnam Pro self-host qua Fontsource
+- Nền sáng/tối bằng next-themes (mặc định theo cài đặt máy), nút chuyển ở mọi trang
+- Mobile-first: chạy tốt từ 320px, có breakpoint `xs` (400px) cho máy nhỏ,
+  tôn trọng safe-area của iPhone; từ `md` trở lên khung rộng hơn và bố cục 2 cột
 - Dữ liệu mock trong repo (chưa gắn DB), state tủ lạnh lưu ở `localStorage`
 
 ## Cấu trúc
