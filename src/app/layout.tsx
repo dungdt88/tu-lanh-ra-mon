@@ -27,7 +27,8 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="vi" className="h-full" suppressHydrationWarning>
-      <body className="bg-muted/40 min-h-full">
+      {/* suppressHydrationWarning: tiện ích trình duyệt hay chèn thuộc tính vào body */}
+      <body className="bg-muted/40 min-h-full" suppressHydrationWarning>
         <ThemeProvider>
           <div className="bg-background mx-auto flex min-h-dvh w-full max-w-lg flex-col md:max-w-2xl md:border-x">
             <main className="flex-1 pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
