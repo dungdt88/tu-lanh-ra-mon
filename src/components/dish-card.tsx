@@ -19,7 +19,12 @@ export function DishCard({
   const { dish, missing, coverage } = match;
 
   return (
-    <Card className={cn("gap-0 overflow-hidden p-0", className)}>
+    <Card
+      className={cn(
+        "gap-0 overflow-hidden p-0 transition-colors active:scale-[0.99]",
+        className,
+      )}
+    >
       <Link href={`/mon/${dish.slug}`} className="block p-4">
         <div className="flex items-start gap-3">
           <div className="bg-accent flex size-12 shrink-0 items-center justify-center rounded-xl text-2xl">
@@ -51,7 +56,7 @@ export function DishCard({
             </div>
 
             {missing.length === 0 ? (
-              <p className="mt-2 text-xs font-medium text-emerald-600">
+              <p className="mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                 Nấu được ngay với đồ đang có
               </p>
             ) : (

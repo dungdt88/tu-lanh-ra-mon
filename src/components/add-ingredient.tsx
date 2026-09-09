@@ -4,7 +4,7 @@ import * as React from "react";
 import { Check, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { searchIngredients } from "@/data/ingredients";
+import { getIngredient, searchIngredients } from "@/data/ingredients";
 import { usePantry } from "@/lib/pantry-store";
 import { capitalize } from "@/lib/text";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 export function AddIngredient({
   autoFocus,
   onAdded,
-  placeholder = "Gõ tên nguyên liệu, vd: đậu phụ, thịt heo…",
+  placeholder = "Gõ tên nguyên liệu…",
 }: {
   autoFocus?: boolean;
   onAdded?: (id: string) => void;
@@ -36,7 +36,8 @@ export function AddIngredient({
 
   function commit(id: string | null, label: string) {
     if (!id) return;
-    setJustAdded(label);
+    // Gõ "thit heo" mà khớp danh mục thì báo đúng tên chuẩn
+    setJustAdded(getIngredient(id)?.name ?? label);
     setQuery("");
     onAdded?.(id);
     window.setTimeout(() => setJustAdded(null), 1800);
@@ -74,7 +75,7 @@ export function AddIngredient({
       </form>
 
       {justAdded && (
-        <p className="flex items-center gap-1 text-xs font-medium text-emerald-600">
+        <p className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
           <Check className="size-3.5" /> Đã thêm {justAdded} vào tủ lạnh
         </p>
       )}
@@ -92,9 +93,9 @@ export function AddIngredient({
                   commit(ingredient.id, ingredient.name);
                 }}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm",
+                  "flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm",
                   owned
-                    ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                    ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                     : "bg-background hover:bg-muted",
                 )}
               >
@@ -109,7 +110,7 @@ export function AddIngredient({
             <button
               type="button"
               onClick={() => commit(addByName(trimmed), capitalize(trimmed))}
-              className="border-primary text-primary hover:bg-primary/10 flex items-center gap-1.5 rounded-full border border-dashed px-3 py-1.5 text-sm"
+              className="border-primary text-primary hover:bg-primary/10 flex min-h-10 items-center gap-1.5 rounded-full border border-dashed px-3 py-1.5 text-sm"
             >
               <Plus className="size-3.5" /> Thêm “{capitalize(trimmed)}”
             </button>

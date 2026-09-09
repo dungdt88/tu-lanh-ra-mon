@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/page-header";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { ROLE_LABEL } from "@/data/dishes";
 import { getIngredient } from "@/data/ingredients";
 import { usePantry } from "@/lib/pantry-store";
@@ -31,6 +32,7 @@ export function DishDetail({ dish }: { dish: Dish }) {
         title={dish.name}
         subtitle={ROLE_LABEL[dish.role]}
         backHref="/"
+        action={<ThemeToggle />}
       />
 
       <div className="space-y-5 px-4">
@@ -66,14 +68,16 @@ export function DishDetail({ dish }: { dish: Dish }) {
         <Card>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold">Nguyên liệu</h2>
+              <h2 className="shrink-0 text-sm font-semibold">Nguyên liệu</h2>
               {hydrated && missing.length > 0 && (
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => add(...missing)}
                 >
-                  <Plus /> Đánh dấu đã mua
+                  <Plus />
+                  <span className="xs:hidden">Đã mua</span>
+                  <span className="xs:inline hidden">Đánh dấu đã mua</span>
                 </Button>
               )}
             </div>

@@ -90,6 +90,9 @@
 }
 
 @theme inline {
+  /* Máy nhỏ như iPhone SE / Galaxy A 320-390px */
+  --breakpoint-xs: 400px;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

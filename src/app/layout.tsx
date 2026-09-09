@@ -5,6 +5,7 @@ import "@fontsource/be-vietnam-pro/600.css";
 import "@fontsource/be-vietnam-pro/700.css";
 import "./globals.css";
 import { BottomNav } from "@/components/bottom-nav";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
   title: "Tủ Lạnh Ra Món",
@@ -14,19 +15,27 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f97316",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fdfcfa" },
+    { media: "(prefers-color-scheme: dark)", color: "#211f1d" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="vi" className="h-full" suppressHydrationWarning>
       <body className="bg-muted/40 min-h-full">
-        <div className="bg-background mx-auto flex min-h-dvh w-full max-w-lg flex-col shadow-sm">
-          <main className="flex-1 pb-24">{children}</main>
-          <BottomNav />
-        </div>
+        <ThemeProvider>
+          <div className="bg-background mx-auto flex min-h-dvh w-full max-w-lg flex-col md:max-w-2xl md:border-x">
+            <main className="flex-1 pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
+              {children}
+            </main>
+            <BottomNav />
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

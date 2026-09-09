@@ -35,7 +35,7 @@ export function MealPlanCard({
           <Link
             key={match.dish.id}
             href={`/mon/${match.dish.slug}`}
-            className="hover:bg-muted/60 -mx-2 flex items-center gap-3 rounded-lg px-2 py-2 transition-colors"
+            className="hover:bg-muted/60 -mx-2 flex min-h-12 items-center gap-3 rounded-lg px-2 py-2 transition-colors"
           >
             <span className="text-xl">{match.dish.emoji}</span>
             <span className="min-w-0 flex-1">
@@ -49,7 +49,7 @@ export function MealPlanCard({
             {match.missing.length === 0 && (
               <Badge
                 variant="outline"
-                className="border-emerald-200 text-[10px] text-emerald-600"
+                className="border-emerald-200 text-[10px] text-emerald-600 dark:border-emerald-800 dark:text-emerald-400"
               >
                 đủ đồ
               </Badge>

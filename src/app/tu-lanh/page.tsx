@@ -4,6 +4,7 @@ import Link from "next/link";
 import { UtensilsCrossed, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { AddIngredient } from "@/components/add-ingredient";
 import {
   CATEGORY_LABEL,
@@ -28,11 +29,15 @@ export default function PantryPage() {
         }
         backHref="/"
         action={
-          items.length > 0 ? (
-            <Button variant="ghost" size="sm" onClick={clear}>
-              <Trash2 /> Xoá hết
-            </Button>
-          ) : undefined
+          <div className="flex shrink-0 items-center gap-1">
+            {items.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={clear}>
+                <Trash2 />
+                <span className="hidden xs:inline">Xoá hết</span>
+              </Button>
+            )}
+            <ThemeToggle />
+          </div>
         }
       />
 
@@ -48,7 +53,7 @@ export default function PantryPage() {
               {ownedCustoms.map((ingredient) => (
                 <span
                   key={ingredient.id}
-                  className="border-primary bg-primary text-primary-foreground flex items-center gap-1.5 rounded-full border py-1.5 pr-2 pl-3 text-sm"
+                  className="border-primary bg-primary text-primary-foreground flex min-h-10 items-center gap-1.5 rounded-full border py-1.5 pr-2 pl-3 text-sm"
                 >
                   {ingredient.emoji} {ingredient.name}
                   <button
@@ -84,7 +89,7 @@ export default function PantryPage() {
                       type="button"
                       onClick={() => toggle(ingredient.id)}
                       className={cn(
-                        "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors",
+                        "flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors active:scale-95",
                         active
                           ? "border-primary bg-primary text-primary-foreground"
                           : "bg-background hover:bg-muted",
@@ -101,19 +106,17 @@ export default function PantryPage() {
         })}
       </div>
 
-      <div className="bg-background/95 fixed inset-x-0 bottom-[68px] z-30 mx-auto w-full max-w-lg border-t p-3 backdrop-blur">
-        <Button
-          asChild
-          size="lg"
-          className="w-full"
-          disabled={items.length === 0}
-        >
+      <div className="bg-background/95 fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 mx-auto w-full max-w-lg border-t p-3 backdrop-blur md:max-w-2xl">
+        <Button asChild size="lg" className="w-full">
           <Link href="/">
-            <UtensilsCrossed /> Xem mâm cơm với {items.length} nguyên liệu
+            <UtensilsCrossed />
+            {items.length > 0
+              ? `Xem mâm cơm với ${items.length} nguyên liệu`
+              : "Xem mâm cơm gợi ý"}
           </Link>
         </Button>
       </div>
-      <div className="h-16" />
+      <div className="h-20" />
     </div>
   );
 }

@@ -59,7 +59,7 @@ export function QuickPantry() {
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger className="border-primary text-primary hover:bg-primary/10 flex shrink-0 items-center gap-1 rounded-full border border-dashed px-3 py-1.5 text-sm">
+          <DialogTrigger className="border-primary text-primary hover:bg-primary/10 flex min-h-10 shrink-0 items-center gap-1 rounded-full border border-dashed px-3 py-1.5 text-sm active:scale-95">
             <Plus className="size-4" /> Điền nguyên liệu
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
@@ -84,7 +84,7 @@ export function QuickPantry() {
               type="button"
               onClick={() => toggle(id)}
               className={cn(
-                "flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors",
+                "flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors active:scale-95",
                 active
                   ? "border-primary bg-primary text-primary-foreground"
                   : "bg-background hover:bg-muted",

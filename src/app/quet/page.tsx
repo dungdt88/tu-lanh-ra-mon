@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/page-header";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { AddIngredient } from "@/components/add-ingredient";
 import { usePantry } from "@/lib/pantry-store";
 
@@ -64,6 +65,7 @@ export default function ScanPage() {
         title="Quét tủ lạnh"
         subtitle="Chụp hoặc chọn ảnh — app đọc ra nguyên liệu"
         backHref="/"
+        action={<ThemeToggle />}
       />
 
       <div className="space-y-4 px-4">

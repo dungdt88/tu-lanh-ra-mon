@@ -23,9 +23,13 @@ export function matchDish(dish: Dish, pantry: Set<string>): DishMatch {
   const bonus = dish.optional.filter((id) => pantry.has(id));
   const coverage = dish.core.length === 0 ? 1 : have.length / dish.core.length;
 
-  // Ưu tiên: nấu được ngay > ít thiếu > nhanh > dễ
+  // Nguyên liệu người dùng thực sự bỏ vào tủ (gia vị mặc định không tính)
+  const fromFridge = dish.core.filter((id) => pantry.has(id));
+
+  // Ưu tiên: dùng đúng đồ đang có > nấu được ngay > ít thiếu > nhanh > dễ
   const score =
     coverage * 100 +
+    fromFridge.length * 12 +
     (missing.length === 0 ? 25 : 0) +
     bonus.length * 4 -
     missing.length * 18 -
