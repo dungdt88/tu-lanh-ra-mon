@@ -96,11 +96,18 @@ export function usePantry() {
       hydrated,
       customMap,
       has: (id: string) => set.has(id),
-      add: (...ids: string[]) => writeItems([...items, ...ids]),
-      remove: (id: string) => writeItems(items.filter((x) => x !== id)),
+
+      // Các hàm ghi luôn đọc snapshot mới nhất chứ không dùng biến của lần
+      // render hiện tại - nhờ vậy gọi add() rồi addCustom() liên tiếp trong
+      // cùng một sự kiện không ghi đè lẫn nhau.
+      add: (...ids: string[]) => writeItems([...snapshot.items, ...ids]),
+      remove: (id: string) =>
+        writeItems(snapshot.items.filter((x) => x !== id)),
       toggle: (id: string) =>
         writeItems(
-          items.includes(id) ? items.filter((x) => x !== id) : [...items, id],
+          snapshot.items.includes(id)
+            ? snapshot.items.filter((x) => x !== id)
+            : [...snapshot.items, id],
         ),
       replaceAll: (ids: string[]) => writeItems(ids),
       clear: () => writeItems([]),
@@ -116,26 +123,22 @@ export function usePantry() {
         if (!name || !slug) return null;
 
         const id = `custom-${slug}`;
-        const nextCustoms = customMap.has(id)
-          ? customs
-          : [...customs, { id, name, emoji: "🥘" }];
+        const existing = snapshot.customs;
+        const nextCustoms = existing.some((c) => c.id === id)
+          ? existing
+          : [...existing, { id, name, emoji: "🥘" }];
 
         save(CUSTOM_KEY, nextCustoms);
-        writeItems([...items, id], nextCustoms);
+        writeItems([...snapshot.items, id], nextCustoms);
         return id;
       },
 
       /** Xoá hẳn một nguyên liệu tự điền khỏi danh sách của người dùng */
       removeCustom: (id: string) => {
-        const nextCustoms = customs.filter((c) => c.id !== id);
-        writeCustoms(
-          nextCustoms,
-          items.filter((x) => x !== id),
-        );
-        save(
-          STORAGE_KEY,
-          items.filter((x) => x !== id),
-        );
+        const nextItems = snapshot.items.filter((x) => x !== id);
+        const nextCustoms = snapshot.customs.filter((c) => c.id !== id);
+        save(STORAGE_KEY, nextItems);
+        writeCustoms(nextCustoms, nextItems);
       },
     };
   }, [items, customs, hydrated]);

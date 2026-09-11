@@ -20,14 +20,20 @@ type Detected = {
   confidence: number;
 };
 
+type RecognizeResponse = {
+  source: "gemini" | "mock";
+  detected: Detected[];
+};
+
 export default function ScanPage() {
   const router = useRouter();
-  const { add } = usePantry();
+  const { add, addCustom } = usePantry();
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const [preview, setPreview] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [detected, setDetected] = React.useState<Detected[] | null>(null);
+  const [source, setSource] = React.useState<RecognizeResponse["source"]>("mock");
   const [picked, setPicked] = React.useState<Set<string>>(new Set());
 
   React.useEffect(() => {
@@ -46,7 +52,8 @@ export default function ScanPage() {
 
     try {
       const res = await fetch("/api/recognize", { method: "POST", body });
-      const data = (await res.json()) as { detected: Detected[] };
+      const data = (await res.json()) as RecognizeResponse;
+      setSource(data.source);
       setDetected(data.detected);
       setPicked(new Set(data.detected.map((d) => d.id)));
     } finally {
@@ -55,7 +62,15 @@ export default function ScanPage() {
   }
 
   function confirm() {
-    add(...Array.from(picked));
+    const chosen = (detected ?? []).filter((item) => picked.has(item.id));
+
+    // Thứ ngoài danh mục lưu thành nguyên liệu tự thêm để còn hiện đúng tên
+    const known = chosen.filter((item) => !item.id.startsWith("custom-"));
+    const custom = chosen.filter((item) => item.id.startsWith("custom-"));
+
+    if (known.length > 0) add(...known.map((item) => item.id));
+    custom.forEach((item) => addCustom(item.name));
+
     router.push("/");
   }
 
@@ -134,6 +149,9 @@ export default function ScanPage() {
               <h2 className="text-sm font-semibold">
                 Thấy {detected.length} nguyên liệu
               </h2>
+              {source === "gemini" && (
+                <span className="text-muted-foreground text-[11px]">Gemini</span>
+              )}
             </div>
             <p className="text-muted-foreground text-xs">
               Bỏ chọn thứ không có, phần thiếu bạn thêm tay ở bước sau.
@@ -180,10 +198,12 @@ export default function ScanPage() {
           </section>
         )}
 
-        <p className="text-muted-foreground pb-4 text-center text-[11px]">
-          Bản này dùng nhận diện mô phỏng. Khi gắn vision API thật, chỉ cần thay
-          <code className="mx-1">src/app/api/recognize/route.ts</code>.
-        </p>
+        {detected && source === "mock" && (
+          <p className="text-muted-foreground pb-4 text-center text-[11px]">
+            Đang dùng nhận diện mô phỏng. Điền GEMINI_API_KEY vào .env.local để
+            đọc ảnh thật.
+          </p>
+        )}
       </div>
     </div>
   );
