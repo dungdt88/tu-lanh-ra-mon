@@ -57,7 +57,7 @@ thì nhận diện ảnh chạy bản mô phỏng.
 ### Gemini (nhận diện ảnh tủ lạnh)
 
 Điền `GEMINI_API_KEY` là `/quet` chuyển sang đọc ảnh thật, màn hình sẽ hiện nhãn
-"Gemini" thay cho dòng nhắc mô phỏng. Model mặc định `gemini-3.8-flash`, đổi bằng
+"Gemini" thay cho dòng nhắc mô phỏng. Model mặc định `gemini-3.6-flash`, đổi bằng
 `GEMINI_MODEL`. Gemini lỗi hoặc hết quota thì API tự lùi về bản mô phỏng và ghi
 log, người dùng không thấy màn hình trắng.
 

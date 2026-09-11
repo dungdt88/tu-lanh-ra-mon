@@ -6,7 +6,7 @@ import "server-only";
  * app vẫn dùng được bình thường.
  */
 export const GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? "";
-export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
 export const GEMINI_BASE_URL =
   process.env.GEMINI_BASE_URL || "https://generativelanguage.googleapis.com";
 
