@@ -86,7 +86,7 @@ export function DishDetail({ dish }: { dish: Dish }) {
             <ul className="space-y-1.5">
               {rows.map(({ id, required }) => {
                 const ingredient = getIngredient(id);
-                const owned = hydrated && (has(id) || ingredient?.staple);
+                const owned = ingredient?.staple || (hydrated && has(id));
                 return (
                   <li
                     key={`${id}-${required}`}

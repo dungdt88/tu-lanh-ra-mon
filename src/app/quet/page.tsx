@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Camera, Loader2, RefreshCw, Sparkles } from "lucide-react";
+import { AlertTriangle, Camera, Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -35,6 +35,7 @@ export default function ScanPage() {
   const [detected, setDetected] = React.useState<Detected[] | null>(null);
   const [source, setSource] = React.useState<RecognizeResponse["source"]>("mock");
   const [picked, setPicked] = React.useState<Set<string>>(new Set());
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     return () => {
@@ -45,6 +46,7 @@ export default function ScanPage() {
   async function handleFile(file: File) {
     setPreview(URL.createObjectURL(file));
     setDetected(null);
+    setError(null);
     setLoading(true);
 
     const body = new FormData();
@@ -52,10 +54,13 @@ export default function ScanPage() {
 
     try {
       const res = await fetch("/api/recognize", { method: "POST", body });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as RecognizeResponse;
       setSource(data.source);
       setDetected(data.detected);
       setPicked(new Set(data.detected.map((d) => d.id)));
+    } catch {
+      setError("Không nhận diện được ảnh. Kiểm tra mạng rồi thử lại nhé.");
     } finally {
       setLoading(false);
     }
@@ -88,7 +93,6 @@ export default function ScanPage() {
           ref={inputRef}
           type="file"
           accept="image/*"
-          capture="environment"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -140,6 +144,22 @@ export default function ScanPage() {
               </Button>
             </CardContent>
           </Card>
+        )}
+
+        {error && (
+          <div className="border-destructive/30 bg-destructive/5 flex items-start gap-2 rounded-xl border p-3">
+            <AlertTriangle className="text-destructive mt-0.5 size-4 shrink-0" />
+            <div className="flex-1 space-y-2">
+              <p className="text-xs font-medium">{error}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => inputRef.current?.click()}
+              >
+                <RefreshCw /> Thử lại
+              </Button>
+            </div>
+          </div>
         )}
 
         {detected && (

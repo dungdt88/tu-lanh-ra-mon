@@ -21,7 +21,7 @@ export type Ingredient = {
   custom?: boolean;
 };
 
-export type MealSlot = "trua" | "toi";
+export type MealSlot = "sang" | "trua" | "toi";
 
 /** Vai trò của món trong mâm cơm Việt */
 export type DishRole = "man" | "canh" | "rau" | "com";

@@ -49,10 +49,12 @@ thì nhận diện ảnh chạy bản mô phỏng.
 2. Settings → API, copy `Project URL` và `anon public` key vào `.env.local`.
 3. (bỏ qua — xem bảng trên)
 4. SQL Editor → New query → dán toàn bộ `supabase/migrations/0001_init.sql` → Run.
-5. SQL Editor → New query → dán toàn bộ `supabase/seed.sql` → Run.
+5. SQL Editor → chạy tiếp `supabase/migrations/0002_bua_sang.sql` (thêm bữa sáng
+   vào enum). Chạy riêng, đừng gộp chung với seed.
+6. SQL Editor → New query → dán toàn bộ `supabase/seed.sql` → Run.
    (File seed sinh từ `src/data`, chạy lại bằng `npm run seed:gen` sau khi sửa món.)
-6. `npm run db:check` để kiểm tra kết nối và số dòng từng bảng.
-7. `npm run dev` — log server sẽ không còn dòng "tạm dùng dữ liệu mock".
+7. `npm run db:check` để kiểm tra kết nối và số dòng từng bảng.
+8. `npm run dev` — log server sẽ không còn dòng "tạm dùng dữ liệu mock".
 
 ### Gemini (nhận diện ảnh tủ lạnh)
 
@@ -101,7 +103,10 @@ src/
 
 ## Nguyên tắc UX: ít chạm nhất có thể
 
-- Mở app là có sẵn mâm cơm cho bữa gần nhất (trưa trước 14h, sau đó là tối) — 0 chạm.
+- Mở app là có sẵn gợi ý cho bữa gần nhất: trước 10h là bữa sáng, trước 14h là
+  bữa trưa, còn lại là bữa tối — 0 chạm.
+- Bữa sáng không dựng mâm mặn + canh + rau mà gợi ý thẳng món đơn (bánh mì trứng,
+  cháo, cơm rang, mì gói, miến xào, yến mạch).
 - Hàng chip nguyên liệu ngay trên trang chủ: 1 chạm là gợi ý đổi theo.
 - "Đổi mâm khác" để xoay vòng phương án, không phải rời trang.
 - Quét tủ: chạm nút quét -> chọn ảnh -> "Xem mâm cơm" là về thẳng trang chủ.

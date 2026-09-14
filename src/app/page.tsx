@@ -21,9 +21,17 @@ import type { MealSlot } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const SLOTS: { value: MealSlot; label: string }[] = [
+  { value: "sang", label: "Bữa sáng" },
   { value: "trua", label: "Bữa trưa" },
   { value: "toi", label: "Bữa tối" },
 ];
+
+/** Trước 10h gợi ý bữa sáng, trước 14h là bữa trưa, còn lại là bữa tối */
+function slotTheoGio(hour: number): MealSlot {
+  if (hour < 10) return "sang";
+  if (hour < 14) return "trua";
+  return "toi";
+}
 
 export default function HomePage() {
   const { set, items, hydrated } = usePantry();
@@ -34,10 +42,12 @@ export default function HomePage() {
   const [offset, setOffset] = React.useState(0);
   const [showMore, setShowMore] = React.useState(false);
 
-  // Trước 14h mặc định bữa trưa, sau đó là bữa tối.
   // Giờ chỉ đọc được ở client nên chờ mounted để không lệch lúc hydrate.
   const slot: MealSlot =
-    chosenSlot ?? (mounted && new Date().getHours() >= 14 ? "toi" : "trua");
+    chosenSlot ?? (mounted ? slotTheoGio(new Date().getHours()) : "trua");
+
+  // Bữa sáng không dựng mâm mặn + canh + rau, chỉ gợi ý món đơn
+  const laBuaSang = slot === "sang";
 
   const plans = React.useMemo(
     () => buildMealPlans(allDishes, set, staples, { slot, count: 5 }),
@@ -49,8 +59,12 @@ export default function HomePage() {
 
   const dishes = React.useMemo(
     () =>
-      rankDishes(allDishes, set, staples, { slot, maxMissing: 1 }).slice(0, 8),
-    [allDishes, set, staples, slot],
+      rankDishes(allDishes, set, staples, {
+        slot,
+        // Món sáng chỉ 1-2 nguyên liệu nên nới ra cho có cái mà chọn
+        maxMissing: laBuaSang ? 2 : 1,
+      }).slice(0, 8),
+    [allDishes, set, staples, slot, laBuaSang],
   );
 
   return (
@@ -81,7 +95,7 @@ export default function HomePage() {
               type="button"
               onClick={() => setChosenSlot(option.value)}
               className={cn(
-                "min-h-9 flex-1 rounded-full text-sm font-medium transition-colors",
+                "xs:text-sm min-h-9 flex-1 rounded-full px-1 text-[13px] font-medium transition-colors",
                 slot === option.value
                   ? "bg-background shadow-sm"
                   : "text-muted-foreground",
@@ -105,6 +119,22 @@ export default function HomePage() {
               <Skeleton className="h-14 w-full" />
             </CardContent>
           </Card>
+        ) : laBuaSang ? (
+          <section className="space-y-3">
+            <h2 className="text-sm font-semibold">Món sáng gợi ý</h2>
+            {dishes.length === 0 ? (
+              <p className="text-muted-foreground text-sm">
+                Chưa có món sáng nào hợp với tủ lạnh. Thử thêm trứng, bánh mì
+                hoặc mì gói.
+              </p>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2">
+                {dishes.map((match) => (
+                  <DishCard key={match.dish.id} match={match} showRole={false} />
+                ))}
+              </div>
+            )}
+          </section>
         ) : (
           featured && (
             <Card className="border-primary/30 gap-3">
@@ -177,7 +207,7 @@ export default function HomePage() {
         )}
 
         {/* Màn nhỏ: gấp lại cho gọn. Màn lớn: hiện luôn vì còn nhiều chỗ trống */}
-        {!showMore && (
+        {!laBuaSang && !showMore && (
           <Button
             variant="ghost"
             className="min-h-11 w-full md:hidden"
@@ -187,7 +217,13 @@ export default function HomePage() {
           </Button>
         )}
 
-        <div className={cn("space-y-6", !showMore && "hidden md:block")}>
+        <div
+          className={cn(
+            "space-y-6",
+            (laBuaSang || !showMore) && "hidden",
+            !laBuaSang && "md:block",
+          )}
+        >
           {others.length > 0 && (
             <section className="space-y-3">
               <h2 className="text-sm font-semibold">Mâm khác</h2>
