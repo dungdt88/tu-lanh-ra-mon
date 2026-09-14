@@ -278,7 +278,13 @@ export const INGREDIENTS: Ingredient[] = [
     aliases: ["mì tôm", "mì ăn liền"],
   },
   { id: "yen-mach", name: "Yến mạch", emoji: "🥣", category: "kho" },
-
+  {
+    id: "ngu coc",
+    name: "ngũ cốc",
+    emoji: "🫙",
+    category: "kho",
+    aliases: ["ngũ cốc "],
+  },
   // Gia vị cơ bản
   {
     id: "nuoc-mam",

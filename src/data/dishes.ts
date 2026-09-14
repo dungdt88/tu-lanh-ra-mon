@@ -356,6 +356,7 @@ export const DISHES: Dish[] = [
     ],
     tip: "Ngâm sẵn từ tối, sáng lấy trong tủ lạnh ra ăn luôn.",
   },
+  { id: "ngu-coc-sua", slug: "ngu-coc-sua", name: "Ngũ cốc sữa", emoji: "🫙", summary: "Không cần bếp, hợp hôm phải ra khỏi nhà sớm.", role: "man", slots: ["sang"], minutes: 5, servings: 1, difficulty: 1, tags: ["10 phút", "ít dầu mỡ"], core: ["ngu-coc", "sua-tuoi"], optional: ["lac"], nutrition: { kcal: 300, protein: 12, carb: 42, fat: 9 }, steps: ["Cho yến mạch vào bát, đổ sữa nóng ngập mặt.", "Đậy nắp 3 phút cho nở mềm.", "Thêm lạc rang giã nhỏ hoặc hoa quả nếu có."], tip: "Ngâm sẵn từ tối, sáng lấy trong tủ lạnh ra ăn luôn." },
 
   // ---------------- CANH ----------------
   {

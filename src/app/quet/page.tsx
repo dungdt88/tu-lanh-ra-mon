@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Camera,
+  ImagePlus,
   Loader2,
   RefreshCw,
   Sparkles,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +20,8 @@ import { PageHeader } from "@/components/page-header";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AddIngredient } from "@/components/add-ingredient";
 import { usePantry } from "@/lib/pantry-store";
+import { useMounted } from "@/lib/use-mounted";
+import { cn } from "@/lib/utils";
 
 type Detected = {
   id: string;
@@ -34,7 +38,16 @@ type RecognizeResponse = {
 export default function ScanPage() {
   const router = useRouter();
   const { add, addCustom } = usePantry();
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  // Máy tính: chọn file. iPhone/iPad: mở thẳng camera (input có thuộc tính capture).
+  const fileRef = React.useRef<HTMLInputElement>(null);
+  const cameraRef = React.useRef<HTMLInputElement>(null);
+  const mounted = useMounted();
+
+  // pointer: coarse = màn cảm ứng (điện thoại, iPad). Chỉ đọc được ở client
+  // nên chờ mounted để không lệch nội dung lúc hydrate.
+  const laCamTay = mounted && window.matchMedia("(pointer: coarse)").matches;
+
+  const [keoVao, setKeoVao] = React.useState(false);
 
   const [preview, setPreview] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -73,6 +86,12 @@ export default function ScanPage() {
     }
   }
 
+  /** Máy cảm ứng thì mở camera, máy tính thì mở hộp thoại chọn file */
+  function moNguonAnh() {
+    if (laCamTay) cameraRef.current?.click();
+    else fileRef.current?.click();
+  }
+
   function confirm() {
     const chosen = (detected ?? []).filter((item) => picked.has(item.id));
 
@@ -90,14 +109,18 @@ export default function ScanPage() {
     <div className="space-y-4">
       <PageHeader
         title="Quét tủ lạnh"
-        subtitle="Chụp hoặc chọn ảnh — app đọc ra nguyên liệu"
+        subtitle={
+          laCamTay
+            ? "Chụp một tấm — app đọc ra nguyên liệu"
+            : "Tải ảnh lên — app đọc ra nguyên liệu"
+        }
         backHref="/"
         action={<ThemeToggle />}
       />
 
       <div className="space-y-4 px-4">
         <input
-          ref={inputRef}
+          ref={fileRef}
           type="file"
           accept="image/*"
           className="hidden"
@@ -106,21 +129,68 @@ export default function ScanPage() {
             if (file) void handleFile(file);
           }}
         />
+        <input
+          ref={cameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) void handleFile(file);
+          }}
+        />
 
         {!preview ? (
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            className="border-primary/40 bg-accent/30 hover:bg-accent/50 flex w-full flex-col items-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-colors"
-          >
-            <span className="bg-primary/15 text-primary flex size-14 items-center justify-center rounded-full">
-              <Camera className="size-7" />
-            </span>
-            <span className="text-sm font-medium">Chụp ảnh tủ lạnh</span>
-            <span className="text-muted-foreground text-xs">
-              Mở cửa tủ, chụp một tấm thấy rõ các ngăn
-            </span>
-          </button>
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => moNguonAnh()}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setKeoVao(true);
+              }}
+              onDragLeave={() => setKeoVao(false)}
+              onDrop={(event) => {
+                event.preventDefault();
+                setKeoVao(false);
+                const file = event.dataTransfer.files?.[0];
+                if (file?.type.startsWith("image/")) void handleFile(file);
+              }}
+              className={cn(
+                "flex w-full flex-col items-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-colors",
+                keoVao
+                  ? "border-primary bg-accent/70"
+                  : "border-primary/40 bg-accent/30 hover:bg-accent/50",
+              )}
+            >
+              <span className="bg-primary/15 text-primary flex size-14 items-center justify-center rounded-full">
+                {laCamTay ? (
+                  <Camera className="size-7" />
+                ) : (
+                  <Upload className="size-7" />
+                )}
+              </span>
+              <span className="text-sm font-medium">
+                {laCamTay ? "Chụp ảnh tủ lạnh" : "Tải ảnh tủ lạnh lên"}
+              </span>
+              <span className="text-muted-foreground text-xs">
+                {laCamTay
+                  ? "Mở cửa tủ, chụp một tấm thấy rõ các ngăn"
+                  : "Kéo thả ảnh vào đây hoặc bấm để chọn file"}
+              </span>
+            </button>
+
+            {laCamTay && (
+              <Button
+                variant="ghost"
+                className="min-h-11 w-full"
+                onClick={() => fileRef.current?.click()}
+              >
+                <ImagePlus /> Chọn ảnh có sẵn trong máy
+              </Button>
+            )}
+          </div>
         ) : (
           <Card className="overflow-hidden p-0">
             <div className="relative aspect-4/3 w-full">
@@ -145,9 +215,9 @@ export default function ScanPage() {
                 variant="ghost"
                 size="sm"
                 className="w-full"
-                onClick={() => inputRef.current?.click()}
+                onClick={() => moNguonAnh()}
               >
-                <RefreshCw /> Chụp lại
+                <RefreshCw /> {laCamTay ? "Chụp lại" : "Chọn ảnh khác"}
               </Button>
             </CardContent>
           </Card>
@@ -158,11 +228,7 @@ export default function ScanPage() {
             <AlertTriangle className="text-destructive mt-0.5 size-4 shrink-0" />
             <div className="flex-1 space-y-2">
               <p className="text-xs font-medium">{error}</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => inputRef.current?.click()}
-              >
+              <Button variant="outline" size="sm" onClick={() => moNguonAnh()}>
                 <RefreshCw /> Thử lại
               </Button>
             </div>
