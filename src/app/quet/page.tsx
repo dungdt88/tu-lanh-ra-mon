@@ -3,7 +3,13 @@
 import * as React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Camera, Loader2, RefreshCw, Sparkles } from "lucide-react";
+import {
+  AlertTriangle,
+  Camera,
+  Loader2,
+  RefreshCw,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -33,7 +39,8 @@ export default function ScanPage() {
   const [preview, setPreview] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [detected, setDetected] = React.useState<Detected[] | null>(null);
-  const [source, setSource] = React.useState<RecognizeResponse["source"]>("mock");
+  const [source, setSource] =
+    React.useState<RecognizeResponse["source"]>("mock");
   const [picked, setPicked] = React.useState<Set<string>>(new Set());
   const [error, setError] = React.useState<string | null>(null);
 
@@ -170,7 +177,9 @@ export default function ScanPage() {
                 Thấy {detected.length} nguyên liệu
               </h2>
               {source === "gemini" && (
-                <span className="text-muted-foreground text-[11px]">Gemini</span>
+                <span className="text-muted-foreground text-[11px]">
+                  Gemini
+                </span>
               )}
             </div>
             <p className="text-muted-foreground text-xs">

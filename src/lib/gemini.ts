@@ -101,7 +101,9 @@ export async function recognizeWithGemini(
   const data = (await response.json()) as GeminiResponse;
 
   if (!response.ok || data.error) {
-    throw new Error(data.error?.message ?? `Gemini trả về HTTP ${response.status}`);
+    throw new Error(
+      data.error?.message ?? `Gemini trả về HTTP ${response.status}`,
+    );
   }
 
   const text = data.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;

@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getCatalog } from "@/lib/repo/catalog";
-import { hasGemini, recognizeWithGemini, type DetectedIngredient } from "@/lib/gemini";
+import {
+  hasGemini,
+  recognizeWithGemini,
+  type DetectedIngredient,
+} from "@/lib/gemini";
 import { slugify } from "@/lib/text";
 
 /**
@@ -10,10 +14,26 @@ import { slugify } from "@/lib/text";
  */
 
 const MOCK_POOL = [
-  "trung-ga", "ca-chua", "thit-ba-chi", "thit-bam", "rau-muong",
-  "cai-thao", "bi-xanh", "ca-rot", "dau-hu", "tom",
-  "dui-ga", "hanh-tay", "khoai-tay", "su-su", "nam-rom",
-  "dau-que", "mong-toi", "bap-cai", "suon-non", "ca-basa",
+  "trung-ga",
+  "ca-chua",
+  "thit-ba-chi",
+  "thit-bam",
+  "rau-muong",
+  "cai-thao",
+  "bi-xanh",
+  "ca-rot",
+  "dau-hu",
+  "tom",
+  "dui-ga",
+  "hanh-tay",
+  "khoai-tay",
+  "su-su",
+  "nam-rom",
+  "dau-que",
+  "mong-toi",
+  "bap-cai",
+  "suon-non",
+  "ca-basa",
 ];
 
 function pseudoRandom(seed: number) {
@@ -80,7 +100,9 @@ export async function POST(request: Request) {
   const seed =
     file instanceof File ? file.size + file.name.length : Date.now() % 100000;
   const random = pseudoRandom(seed || 42);
-  const pool = MOCK_POOL.filter((id) => byId.has(id)).sort(() => random() - 0.5);
+  const pool = MOCK_POOL.filter((id) => byId.has(id)).sort(
+    () => random() - 0.5,
+  );
   const count = 5 + Math.floor(random() * 4);
 
   const detected: DetectedIngredient[] = pool.slice(0, count).map((id) => {

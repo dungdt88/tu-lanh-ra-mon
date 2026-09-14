@@ -130,7 +130,11 @@ export default function HomePage() {
             ) : (
               <div className="grid gap-3 md:grid-cols-2">
                 {dishes.map((match) => (
-                  <DishCard key={match.dish.id} match={match} showRole={false} />
+                  <DishCard
+                    key={match.dish.id}
+                    match={match}
+                    showRole={false}
+                  />
                 ))}
               </div>
             )}
