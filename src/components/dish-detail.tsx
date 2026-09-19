@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Clock, Flame, Plus, Users } from "lucide-react";
+import { Check, Clock, Flame, Plus, RotateCcw, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +8,9 @@ import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/page-header";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ROLE_LABEL } from "@/data/dishes";
+import { DishChat } from "@/components/dish-chat";
+import { useChatStore } from "@/lib/chat-store";
+import { applyOverride } from "@/lib/dish-override";
 import { useCatalog } from "@/lib/catalog-context";
 import { usePantry } from "@/lib/pantry-store";
 import type { Dish } from "@/lib/types";
@@ -15,9 +18,15 @@ import { cn } from "@/lib/utils";
 
 const DIFFICULTY_LABEL = ["Rất dễ", "Vừa tay", "Cần chút nghề"];
 
-export function DishDetail({ dish }: { dish: Dish }) {
+export function DishDetail({ dish: baseDish }: { dish: Dish }) {
   const { has, add, hydrated } = usePantry();
   const { getIngredient } = useCatalog();
+  const { overrides, clearOverride, hydrated: chatHydrated } = useChatStore();
+
+  // Bản người dùng đã nhờ trợ lý chỉnh, nếu có. Trước khi đọc xong localStorage
+  // thì hiện món gốc để nội dung server và client không lệch nhau lúc hydrate.
+  const override = chatHydrated ? overrides[baseDish.id] : undefined;
+  const dish = applyOverride(baseDish, override);
 
   const rows = [
     ...dish.core.map((id) => ({ id, required: true })),
@@ -65,6 +74,28 @@ export function DishDetail({ dish }: { dish: Dish }) {
             </Badge>
           ))}
         </div>
+
+        {override && (
+          <div className="border-primary/40 bg-primary/5 flex items-start gap-2 rounded-2xl border p-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">Đã chỉnh theo ý nhà mình</p>
+              <p className="text-muted-foreground mt-0.5 text-xs">
+                {override.note}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="shrink-0"
+              onClick={() => clearOverride(baseDish.id)}
+            >
+              <RotateCcw />
+              <span className="xs:inline hidden">Về bản gốc</span>
+            </Button>
+          </div>
+        )}
+
+        <DishChat dish={dish} />
 
         <Card>
           <CardContent className="space-y-3">

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Camera, Clock, RefreshCw, ShoppingBasket } from "lucide-react";
+import { Clock, RefreshCw, ShoppingBasket } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,10 +11,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DishCard } from "@/components/dish-card";
 import { MealPlanCard } from "@/components/meal-plan-card";
 import { QuickPantry } from "@/components/quick-pantry";
+import { ScanUploader } from "@/components/scan-uploader";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ROLE_LABEL } from "@/data/dishes";
 import { useCatalog } from "@/lib/catalog-context";
 import { usePantry } from "@/lib/pantry-store";
+import { useChatStore } from "@/lib/chat-store";
+import { applyOverrides, filterByAvoid } from "@/lib/dish-override";
 import { useMounted } from "@/lib/use-mounted";
 import { buildMealPlans, rankDishes, stapleIds } from "@/lib/suggest";
 import type { MealSlot } from "@/lib/types";
@@ -35,12 +38,30 @@ function slotTheoGio(hour: number): MealSlot {
 
 export default function HomePage() {
   const { set, items, hydrated } = usePantry();
-  const { dishes: allDishes, ingredients, ingredientName } = useCatalog();
+  const { dishes: rawDishes, ingredients, ingredientName } = useCatalog();
+  const { overrides, prefs, hydrated: chatHydrated } = useChatStore();
+
+  // Món đã được trợ lý chỉnh, và bỏ những món dùng nguyên liệu cả nhà cần tránh.
+  // Chờ chatHydrated để nội dung server và client khớp nhau lúc hydrate.
+  const allDishes = React.useMemo(
+    () =>
+      chatHydrated
+        ? filterByAvoid(applyOverrides(rawDishes, overrides), prefs.avoid)
+        : rawDishes,
+    [rawDishes, overrides, prefs.avoid, chatHydrated],
+  );
   const staples = React.useMemo(() => stapleIds(ingredients), [ingredients]);
   const mounted = useMounted();
   const [chosenSlot, setChosenSlot] = React.useState<MealSlot | null>(null);
   const [offset, setOffset] = React.useState(0);
   const [showMore, setShowMore] = React.useState(false);
+  const goiYRef = React.useRef<HTMLDivElement>(null);
+
+  // Thêm nguyên liệu từ ảnh xong thì cuộn xuống mâm cơm vừa cập nhật
+  function xemGoiY() {
+    setOffset(0);
+    goiYRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   // Giờ chỉ đọc được ở client nên chờ mounted để không lệch lúc hydrate.
   const slot: MealSlot =
@@ -80,12 +101,6 @@ export default function HomePage() {
             </h1>
           </div>
           <ThemeToggle />
-          <Button asChild size="sm" className="shrink-0">
-            <Link href="/quet" prefetch>
-              <Camera />
-              <span className="hidden xs:inline">Quét tủ</span>
-            </Link>
-          </Button>
         </div>
 
         <div className="bg-muted mt-3 flex rounded-full p-1">
@@ -108,7 +123,12 @@ export default function HomePage() {
       </header>
 
       <div className="space-y-5 px-4">
+        {/* Mở app là thấy ô tải ảnh ngay: chụp/tải ảnh tủ lạnh là cách nhanh nhất */}
+        <ScanUploader compact resetAfterDone onDone={xemGoiY} />
+
         <QuickPantry />
+
+        <div ref={goiYRef} className="scroll-mt-32" />
 
         {!hydrated ? (
           <Card>

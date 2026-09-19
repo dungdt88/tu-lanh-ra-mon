@@ -73,3 +73,43 @@ export type MealPlan = {
   nutrition: Nutrition;
   missing: string[];
 };
+
+// ---------------------------------------------------------------- Trợ lý AI
+
+/**
+ * Bản món đã được người dùng nhờ AI chỉnh lại.
+ * Chỉ giữ phần KHÁC món gốc, để món gốc đổi thì phần không chỉnh vẫn theo kịp.
+ */
+export type DishOverride = {
+  dishId: string;
+  name?: string;
+  summary?: string;
+  minutes?: number;
+  core?: string[];
+  optional?: string[];
+  steps?: string[];
+  tip?: string;
+  /** AI tóm tắt đã đổi gì - hiện cho người dùng đối chiếu trước khi áp dụng */
+  note: string;
+  updatedAt: string;
+};
+
+/** Ràng buộc ăn uống lâu dài của cả nhà, áp cho mọi gợi ý */
+export type HouseholdPrefs = {
+  /** id nguyên liệu cần tránh - đã đối chiếu với danh mục, không phải AI bịa */
+  avoid: string[];
+  /** Ghi chú tự do: "thứ 2 ăn chay", "nhà có bé 2 tuổi" */
+  notes: string[];
+};
+
+export type ChatRole = "user" | "assistant";
+
+export type ChatMessage = {
+  id: string;
+  role: ChatRole;
+  content: string;
+  at: string;
+};
+
+/** dish = chỉnh một món đang xem; meal = chỉnh gợi ý cho cả nhà */
+export type ChatScope = "dish" | "meal";

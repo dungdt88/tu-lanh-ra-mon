@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Camera, Refrigerator, UtensilsCrossed } from "lucide-react";
+import { Camera, Refrigerator, Sparkles, UtensilsCrossed } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePantry } from "@/lib/pantry-store";
 
@@ -10,6 +10,7 @@ const ITEMS = [
   { href: "/", label: "Hôm nay", icon: UtensilsCrossed },
   { href: "/quet", label: "Quét tủ", icon: Camera },
   { href: "/tu-lanh", label: "Tủ lạnh", icon: Refrigerator },
+  { href: "/tro-ly", label: "Trợ lý", icon: Sparkles },
 ];
 
 export function BottomNav() {
@@ -21,7 +22,7 @@ export function BottomNav() {
       className="bg-background/95 fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-lg border-t backdrop-blur md:max-w-2xl md:border-x"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <ul className="grid grid-cols-3">
+      <ul className="grid grid-cols-4">
         {ITEMS.map(({ href, label, icon: Icon }) => {
           const active =
             href === "/" ? pathname === "/" : pathname.startsWith(href);
