@@ -7,3 +7,10 @@ export const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 export const hasSupabase = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+
+/**
+ * Toàn bộ bảng của dự án nằm trong schema riêng, không dùng `public`, để không
+ * lẫn với dự án khác trong cùng project Supabase. Schema này phải được thêm vào
+ * Settings > API > Exposed schemas thì PostgREST mới thấy.
+ */
+export const DB_SCHEMA = "tlrm" as const;

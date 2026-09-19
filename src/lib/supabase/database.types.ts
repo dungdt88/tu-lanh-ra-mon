@@ -1,6 +1,6 @@
 import type { Dish, Ingredient, MealSlot } from "@/lib/types";
 
-/** Bảng public.ingredients */
+/** Bảng tlrm.ingredients */
 export type IngredientRow = {
   id: string;
   name: string;
@@ -11,7 +11,7 @@ export type IngredientRow = {
   created_at: string;
 };
 
-/** Bảng public.dishes */
+/** Bảng tlrm.dishes */
 export type DishRow = {
   id: string;
   slug: string;
@@ -34,7 +34,7 @@ export type DishRow = {
   updated_at: string;
 };
 
-/** Bảng public.dish_ingredients */
+/** Bảng tlrm.dish_ingredients */
 export type DishIngredientRow = {
   dish_id: string;
   ingredient_id: string;
@@ -74,7 +74,7 @@ type Table<Row, Insert = Partial<Row>> = {
 };
 
 export type Database = {
-  public: {
+  tlrm: {
     Tables: {
       ingredients: Table<IngredientRow>;
       dishes: Table<DishRow>;
