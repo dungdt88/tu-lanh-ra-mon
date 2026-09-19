@@ -44,3 +44,20 @@ src.tar.gz
 
 # gói tạm khi kiểm thử
 *.tar.gz
+
+# video mở đầu: file trung gian khi render
+/scripts/intro/frames/
+/scripts/intro/scene.html
+
+# file sinh ra khi render video giới thiệu
+scripts/promo/scene.html
+scripts/promo/still-*.png
+
+# file moi truong dat ten khac .env* nen pattern tren khong bat duoc
+local.env
+
+# goi source xuat ra de gui di, sinh lai duoc
+/dong-goi/
+
+# video gioi thieu da render (chay lai bang npm run promo:render)
+scripts/promo/*.mp4
