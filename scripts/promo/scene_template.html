@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<style>
+/*FONTS*/
+:root{
+  --cam:#feaa03; --cam-dam:#e08a00; --muc:#2a1c0b; --nhat:#7a6650;
+  --kem:#fff7ea; --the:#ffffff; --vien:#f0e2cc; --xanh:#2e7d5b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{
+  font-family:"Be Vietnam Pro",system-ui,sans-serif;
+  color:var(--muc);
+  background:
+    radial-gradient(1100px 760px at 78% 46%, #fff 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(900px 700px at 8% 4%, #ffe3ab 0%, rgba(255,227,171,0) 60%),
+    var(--kem);
+  -webkit-font-smoothing:antialiased;
+}
+.stage{position:relative;width:1920px;height:1080px}
+
+/* ─── nền trang trí ─────────────────────────────────────────── */
+.blob{position:absolute;border-radius:50%;filter:blur(2px);opacity:.5}
+.b1{width:420px;height:420px;left:-120px;top:620px;background:#ffd98a}
+.b2{width:260px;height:260px;right:-80px;top:-60px;background:#ffcf6b}
+.grain{position:absolute;inset:0;opacity:.35;
+  background-image:radial-gradient(#e7d5b6 1px,transparent 1px);
+  background-size:26px 26px}
+
+/* ─── cột chữ bên trái ──────────────────────────────────────── */
+.caption{position:absolute;left:120px;top:0;width:820px;height:1080px;
+  display:flex;flex-direction:column;justify-content:center;gap:22px}
+.cap{position:absolute;left:0;width:820px;opacity:0}
+.kicker{display:inline-flex;align-items:center;gap:10px;
+  font-size:22px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cam-dam)}
+.kicker::before{content:"";width:46px;height:5px;border-radius:3px;background:var(--cam)}
+.title{font-size:74px;line-height:1.08;font-weight:700;margin-top:18px;letter-spacing:-.02em}
+.title em{font-style:normal;color:var(--cam-dam)}
+.sub{font-size:30px;line-height:1.45;color:var(--nhat);margin-top:20px;max-width:720px}
+.bullets{list-style:none;margin-top:28px;display:flex;flex-direction:column;gap:16px}
+.bullets li{display:flex;align-items:flex-start;gap:14px;font-size:27px;color:var(--muc)}
+.bullets li span.dot{width:14px;height:14px;border-radius:50%;background:var(--cam);margin-top:11px;flex:none}
+.note{margin-top:30px;display:inline-flex;align-items:center;gap:12px;
+  background:#fff;border:2px solid var(--vien);border-radius:999px;
+  padding:12px 22px;font-size:22px;color:var(--nhat)}
+
+/* ─── màn mở/kết toàn khung ─────────────────────────────────── */
+/* Nền cam giống video intro 2 giây để hai đầu video nối liền mạch */
+.full{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:24px;opacity:0;
+  background:radial-gradient(900px 620px at 50% 40%, #ffcb52 0%, rgba(0,0,0,0) 70%), var(--cam)}
+.full .logo{width:760px;border-radius:34px;overflow:hidden;line-height:0;
+  box-shadow:0 34px 70px rgba(120,80,0,.32);border:8px solid #fff}
+.full h1{font-size:76px;font-weight:700;letter-spacing:-.03em;color:#3a2600}
+.full p{font-size:36px;color:#5a3d00;font-weight:600}
+.full .cta{margin-top:6px;display:flex;gap:16px;align-items:center;
+  font-size:26px;color:var(--muc);background:#fff;border:2px solid rgba(0,0,0,.08);
+  border-radius:999px;padding:14px 30px}
+
+/* ─── khung điện thoại ──────────────────────────────────────── */
+.phone-wrap{position:absolute;right:170px;top:90px;width:452px;height:900px;opacity:0}
+.phone{position:relative;width:452px;height:900px;border-radius:52px;
+  background:var(--muc);padding:13px;
+  box-shadow:0 48px 90px rgba(80,55,15,.28), 0 6px 0 rgba(0,0,0,.12)}
+.glass{position:relative;width:426px;height:874px;border-radius:40px;overflow:hidden;background:var(--kem)}
+.notch{position:absolute;left:50%;transform:translateX(-50%);top:10px;
+  width:120px;height:26px;border-radius:14px;background:var(--muc);z-index:40}
+.screen{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column}
+
+/* thanh trên trong app */
+.appbar{padding:44px 18px 12px;background:rgba(255,255,255,.96);
+  border-bottom:1px solid var(--vien)}
+.appbar .brand{font-size:11px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--cam-dam)}
+.appbar h2{font-size:24px;font-weight:700;margin-top:2px}
+.tabs{display:flex;background:#f4ece0;border-radius:999px;padding:5px;margin-top:14px;gap:4px}
+.tabs div{flex:1;text-align:center;font-size:15px;font-weight:600;color:var(--nhat);
+  padding:9px 0;border-radius:999px}
+.tabs div.on{background:#fff;color:var(--muc);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.body{flex:1;padding:16px 18px 92px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+
+/* ô tải ảnh */
+.drop{display:flex;align-items:center;gap:14px;border:3px dashed rgba(254,170,3,.55);
+  background:rgba(254,170,3,.10);border-radius:22px;padding:18px 16px}
+.drop .ic{width:54px;height:54px;border-radius:50%;background:rgba(254,170,3,.22);
+  display:flex;align-items:center;justify-content:center;font-size:26px;flex:none}
+.drop b{display:block;font-size:17px}
+.drop small{display:block;font-size:13px;color:var(--nhat);margin-top:3px;line-height:1.35}
+.drop.hot{border-color:var(--cam);background:rgba(254,170,3,.2)}
+
+/* chip nguyên liệu */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid var(--vien);background:#fff;border-radius:999px;
+  padding:8px 13px;font-size:15px;display:flex;align-items:center;gap:7px}
+.chip.on{background:var(--cam);border-color:var(--cam);color:#3a2600;font-weight:600}
+
+/* thẻ chung */
+.card{background:var(--the);border:2px solid var(--vien);border-radius:22px;padding:15px}
+.card.hi{border-color:rgba(254,170,3,.55)}
+.row{display:flex;align-items:center;gap:12px;padding:9px 4px;border-radius:14px}
+.row .ava{width:46px;height:46px;border-radius:14px;background:#fdf0d8;
+  display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+.row b{font-size:17px;font-weight:600;display:block}
+.row small{font-size:13px;color:var(--nhat)}
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.hdr b{font-size:16px}
+.badge{background:#f4ece0;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600}
+.sep{height:2px;background:var(--vien);margin:10px 0}
+.buy{font-size:13px;color:var(--nhat);line-height:1.45}
+.buy b{color:var(--muc)}
+.btn{margin-top:12px;border:2px solid var(--vien);border-radius:14px;height:46px;
+  display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600}
+.btn.solid{background:var(--cam);border-color:var(--cam);color:#3a2600}
+
+/* ảnh tủ lạnh + overlay nhận diện */
+.shot{position:relative;border-radius:22px;overflow:hidden;height:250px;border:2px solid var(--vien)}
+.shot .pic{position:absolute;inset:0;
+  background:linear-gradient(160deg,#dff1ff 0%,#eef7ff 55%,#fdf6e6 100%)}
+.fridge{position:absolute;inset:0;padding:14px;display:grid;grid-template-rows:1fr 1fr 1fr;gap:10px}
+.shelf{background:rgba(255,255,255,.75);border-radius:12px;display:flex;align-items:center;
+  gap:14px;padding:0 14px;font-size:30px;border:1px solid rgba(0,0,0,.05)}
+.scan-overlay{position:absolute;inset:0;background:rgba(255,247,234,.72);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.spin{width:34px;height:34px;border-radius:50%;border:4px solid rgba(254,170,3,.25);
+  border-top-color:var(--cam)}
+.scan-overlay p{font-size:14px;font-weight:600}
+.laser{position:absolute;left:0;right:0;height:3px;background:var(--cam);
+  box-shadow:0 0 18px 4px rgba(254,170,3,.55)}
+
+/* danh sách nhận diện */
+.det{display:flex;align-items:center;gap:11px;border:2px solid var(--vien);
+  border-radius:16px;padding:10px 12px;background:#fff}
+.box{width:22px;height:22px;border-radius:7px;border:2px solid var(--cam);
+  background:var(--cam);color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;flex:none}
+.det .nm{flex:1;font-size:16px;font-weight:600}
+.det .pc{font-size:13px;color:var(--nhat)}
+
+/* chat trợ lý */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:26px 26px 0 0;
+  border-top:2px solid var(--vien);padding:16px 16px 20px;display:flex;flex-direction:column;gap:10px;
+  box-shadow:0 -18px 40px rgba(80,55,15,.16)}
+.bubble{max-width:82%;padding:11px 14px;border-radius:18px;font-size:15px;line-height:1.4}
+.me{align-self:flex-end;background:var(--cam);color:#3a2600;border-bottom-right-radius:6px}
+.ai{align-self:flex-start;background:#f4ece0;border-bottom-left-radius:6px}
+.diff{border:2px solid var(--vien);border-radius:16px;padding:12px;font-size:14px;display:flex;gap:12px}
+.diff .col{flex:1}
+.diff .lb{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--nhat);font-weight:700}
+.diff .old{text-decoration:line-through;color:var(--nhat)}
+.diff .new{color:var(--xanh);font-weight:600}
+
+/* thanh tab dưới */
+.nav{position:absolute;left:0;right:0;bottom:0;height:78px;z-index:25;
+  background:rgba(255,255,255,.97);border-top:1px solid var(--vien);
+  display:flex;align-items:flex-start;padding-top:10px}
+.nav div{flex:1;text-align:center;font-size:11px;color:var(--nhat);font-weight:600}
+.nav div i{display:block;font-size:20px;font-style:normal;margin-bottom:3px;filter:grayscale(1) opacity(.55)}
+.nav div.on{color:var(--cam-dam)}
+.nav div.on i{filter:none}
+.steps{font-size:14px;color:var(--nhat);line-height:1.6;margin-top:8px;
+  display:flex;flex-direction:column;gap:9px}
+.steps span b{color:var(--muc)}
+
+/* con trỏ chạm */
+.tap{position:absolute;width:44px;height:44px;border-radius:50%;
+  background:rgba(42,28,11,.22);border:3px solid rgba(42,28,11,.45);opacity:0;z-index:30}
+.ripple{position:absolute;width:44px;height:44px;border-radius:50%;
+  border:3px solid var(--cam);opacity:0;z-index:29}
+
+/* đồng hồ cảnh 2 */
+.clock{display:flex;align-items:center;gap:16px;background:#fff;border:2px solid var(--vien);
+  border-radius:20px;padding:14px 18px;font-size:22px}
+.clock b{font-size:34px}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="grain"></div>
+
+  <!-- MỞ ĐẦU -->
+  <div class="full" id="open">
+    <div class="logo">/*LOGO*/</div>
+    <p>Mở tủ ra là biết tối nay ăn gì</p>
+  </div>
+
+  <!-- KẾT -->
+  <div class="full" id="close">
+    <div class="logo">/*LOGO*/</div>
+    <h1 style="font-size:64px">Tủ Lạnh Ra Món</h1>
+    <p>Chụp tủ lạnh — ra mâm cơm cho cả nhà</p>
+    <div class="cta">🔔 Đang hoàn thiện · theo dõi kênh để xem bản chạy thật</div>
+  </div>
+
+  <!-- CHỮ BÊN TRÁI -->
+  <div class="caption" id="caps"></div>
+
+  <!-- ĐIỆN THOẠI -->
+  <div class="phone-wrap" id="phoneWrap">
+    <div class="phone"><div class="glass">
+      <div class="notch"></div>
+      <div class="nav" id="navbar">
+        <div class="on"><i>🍽️</i>Hôm nay</div>
+        <div><i>📷</i>Quét tủ</div>
+        <div><i>🧊</i>Tủ lạnh</div>
+        <div><i>💬</i>Trợ lý</div>
+      </div>
+
+      <!-- màn: trang chủ trống -->
+      <div class="screen" id="s-home">
+        <div class="appbar">
+          <div class="brand">Tủ Lạnh Ra Món</div>
+          <h2>Hôm nay ăn gì</h2>
+          <div class="tabs"><div>Bữa sáng</div><div>Bữa trưa</div><div class="on">Bữa tối</div></div>
+        </div>
+        <div class="body">
+          <div class="drop"><div class="ic">📷</div><div><b>Chụp ảnh tủ lạnh</b>
+            <small>Mở cửa tủ, chụp một tấm — app tự đọc nguyên liệu</small></div></div>
+          <div class="chips">
+            <div class="chip">🥚 Trứng gà</div><div class="chip">🥓 Thịt ba chỉ</div>
+            <div class="chip">🍅 Cà chua</div><div class="chip">🥬 Rau muống</div>
+            <div class="chip">🥔 Khoai tây</div><div class="chip">🥕 Cà rốt</div>
+          </div>
+          <div class="card" style="text-align:center;color:var(--nhat);font-size:15px;padding:26px 16px">
+            Tủ lạnh đang trống.<br />Chạm nguyên liệu hoặc chụp một tấm để bắt đầu.
+          </div>
+        </div>
+      </div>
+
+      <!-- màn: quét tủ -->
+      <div class="screen" id="s-scan">
+        <div class="appbar">
+          <div class="brand">Tủ Lạnh Ra Món</div>
+          <h2>Hôm nay ăn gì</h2>
+          <div class="tabs"><div>Bữa sáng</div><div>Bữa trưa</div><div class="on">Bữa tối</div></div>
+        </div>
+        <div class="body">
+          <div class="drop hot" id="dropHot"><div class="ic">📷</div><div><b>Chụp ảnh tủ lạnh</b>
+            <small>Mở cửa tủ, chụp một tấm — app tự đọc nguyên liệu</small></div></div>
+          <div class="shot" id="shot">
+            <div class="pic"></div>
+            <div class="fridge">
+              <div class="shelf">🥚 🥛 🧈</div>
+              <div class="shelf">🥓 🍗 🐟</div>
+              <div class="shelf">🍅 🥬 🥕 🧅</div>
+            </div>
+            <div class="laser" id="laser"></div>
+            <div class="scan-overlay" id="scanOv">
+              <div class="spin" id="spin"></div><p>Đang nhận diện nguyên liệu…</p>
+            </div>
+          </div>
+          <div class="card" style="color:var(--nhat);font-size:14px;text-align:center">
+            Ảnh chỉ dùng để đọc nguyên liệu
+          </div>
+        </div>
+        <div class="tap" id="tap1"></div><div class="ripple" id="rip1"></div>
+      </div>
+
+      <!-- màn: đã nhận diện -->
+      <div class="screen" id="s-det">
+        <div class="appbar">
+          <div class="brand">Tủ Lạnh Ra Món</div>
+          <h2>Thấy 6 nguyên liệu</h2>
+        </div>
+        <div class="body">
+          <p style="font-size:14px;color:var(--nhat)">Bỏ chọn thứ không có, thiếu gì thì điền thêm.</p>
+          <div class="det" data-ap="0"><div class="box">✓</div><span class="nm">🥚 Trứng gà</span><span class="pc">96%</span></div>
+          <div class="det" data-ap="1"><div class="box">✓</div><span class="nm">🥓 Thịt ba chỉ</span><span class="pc">93%</span></div>
+          <div class="det" data-ap="2"><div class="box">✓</div><span class="nm">🍅 Cà chua</span><span class="pc">91%</span></div>
+          <div class="det" data-ap="3"><div class="box">✓</div><span class="nm">🐟 Cá basa</span><span class="pc">88%</span></div>
+          <div class="det" data-ap="4"><div class="box">✓</div><span class="nm">🥬 Rau muống</span><span class="pc">85%</span></div>
+          <div class="det" data-ap="5"><div class="box">✓</div><span class="nm">🧅 Hành tím</span><span class="pc">81%</span></div>
+          <div class="btn solid" data-ap="6">Xem mâm cơm với 6 nguyên liệu</div>
+        </div>
+        <div class="tap" id="tap2"></div><div class="ripple" id="rip2"></div>
+      </div>
+
+      <!-- màn: mâm cơm -->
+      <div class="screen" id="s-plan">
+        <div class="appbar">
+          <div class="brand">Tủ Lạnh Ra Món</div>
+          <h2>Hôm nay ăn gì</h2>
+          <div class="tabs"><div>Bữa sáng</div><div>Bữa trưa</div><div class="on">Bữa tối</div></div>
+        </div>
+        <div class="body">
+          <div class="chips">
+            <div class="chip on">🥚 Trứng gà</div><div class="chip on">🥓 Thịt ba chỉ</div>
+            <div class="chip on">🍅 Cà chua</div><div class="chip on">🐟 Cá basa</div>
+            <div class="chip on">🥬 Rau muống</div>
+          </div>
+          <div class="card hi">
+            <div class="hdr"><b>Mâm cơm gợi ý</b><span class="badge">🕐 40 phút</span></div>
+            <div id="planRows">
+              <div class="row" data-ap="0"><div class="ava">🍳</div><div><b>Thịt kho trứng</b>
+                <small>Món mặn · 40 phút · đủ đồ</small></div></div>
+              <div class="row" data-ap="1"><div class="ava">🍲</div><div><b>Canh chua cá</b>
+                <small>Canh · 30 phút · đủ đồ</small></div></div>
+              <div class="row" data-ap="2"><div class="ava">🥬</div><div><b>Rau muống xào tỏi</b>
+                <small>Rau · 7 phút · đủ đồ</small></div></div>
+            </div>
+            <div class="sep"></div>
+            <p class="buy">🧺 Ghé chợ mua: <b>không thiếu gì cả</b></p>
+            <div class="btn" data-ap="3">🔄 Đổi mâm khác</div>
+          </div>
+        </div>
+        <div class="tap" id="tap3"></div><div class="ripple" id="rip3"></div>
+      </div>
+
+      <!-- màn: mâm cơm thứ hai -->
+      <div class="screen" id="s-plan2">
+        <div class="appbar">
+          <div class="brand">Tủ Lạnh Ra Món</div>
+          <h2>Hôm nay ăn gì</h2>
+          <div class="tabs"><div>Bữa sáng</div><div>Bữa trưa</div><div class="on">Bữa tối</div></div>
+        </div>
+        <div class="body">
+          <div class="chips">
+            <div class="chip on">🥚 Trứng gà</div><div class="chip on">🥓 Thịt ba chỉ</div>
+            <div class="chip on">🍅 Cà chua</div><div class="chip on">🐟 Cá basa</div>
+            <div class="chip on">🥬 Rau muống</div>
+          </div>
+          <div class="card hi">
+            <div class="hdr"><b>Mâm cơm gợi ý</b><span class="badge">🕐 25 phút</span></div>
+            <div class="row" data-ap="0"><div class="ava">🍅</div><div><b>Đậu hũ sốt cà chua</b>
+              <small>Món mặn · 20 phút</small></div></div>
+            <div class="row" data-ap="1"><div class="ava">🥚</div><div><b>Canh trứng cà chua</b>
+              <small>Canh · 10 phút · đủ đồ</small></div></div>
+            <div class="row" data-ap="2"><div class="ava">🥬</div><div><b>Rau muống xào tỏi</b>
+              <small>Rau · 7 phút · đủ đồ</small></div></div>
+            <div class="sep"></div>
+            <p class="buy">🧺 Ghé chợ mua: <b>đậu hũ</b></p>
+            <div class="btn">🔄 Đổi mâm khác</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- màn: chỉnh món với trợ lý -->
+      <div class="screen" id="s-chat">
+        <div class="appbar">
+          <div class="brand">Món mặn · 40 phút</div>
+          <h2>Thịt kho trứng</h2>
+        </div>
+        <div class="body">
+          <div class="card">
+            <b style="font-size:15px">Nguyên liệu</b>
+            <p style="font-size:14px;color:var(--nhat);margin-top:8px;line-height:1.6">
+              🥓 Thịt ba chỉ · 🥚 Trứng gà<br />🧅 Hành tím · 🧄 Tỏi</p>
+          </div>
+          <div class="card">
+            <b style="font-size:15px">Cách làm</b>
+            <div class="steps">
+              <span><b>1.</b> Ướp thịt 15 phút với nước mắm, đường, tiêu, hành tím.</span>
+              <span><b>2.</b> Luộc trứng 8 phút rồi bóc vỏ.</span>
+              <span><b>3.</b> Thắng đường tới màu cánh gián, cho thịt vào đảo săn.</span>
+              <span><b>4.</b> Kho lửa nhỏ 25 phút, cho trứng vào kho thêm 10 phút.</span>
+            </div>
+          </div>
+          <div class="btn">💬 Chỉnh món theo ý nhà mình</div>
+        </div>
+        <div class="sheet" id="sheet">
+          <div class="bubble me" data-ap="0">Nhà mình có bé 3 tuổi, bớt mặn và đừng cay nhé</div>
+          <div class="bubble ai" data-ap="1">Mình giảm nước mắm còn một nửa, bỏ ớt và kho thêm 10 phút cho thịt mềm.</div>
+          <div class="diff" data-ap="2">
+            <div class="col"><div class="lb">Trước</div><div class="old">2 thìa nước mắm · 1 trái ớt</div></div>
+            <div class="col"><div class="lb">Sau</div><div class="new">1 thìa nước mắm · bỏ ớt</div></div>
+          </div>
+          <div class="btn solid" data-ap="3">Áp dụng cho nhà mình</div>
+        </div>
+        <div class="tap" id="tap4"></div><div class="ripple" id="rip4"></div>
+      </div>
+
+    </div></div>
+  </div>
+</div>
+
+<script>
+/* ────────────────────────────────────────────────────────────────
+   Không dùng CSS animation: renderer cần tua tới giây t bất kỳ,
+   nên mọi chuyển động nằm trong window.setT(t).
+   ──────────────────────────────────────────────────────────────── */
+const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+const seg = (t,a,b) => clamp01((t-a)/(b-a));
+const outCubic = p => 1 - Math.pow(1-p,3);
+const inOut = p => p < .5 ? 4*p*p*p : 1 - Math.pow(-2*p+2,3)/2;
+const lerp = (a,b,p) => a + (b-a)*p;
+
+/* Kịch bản: mỗi khối là một cảnh.
+   layout "full" = logo toàn khung, "split" = chữ trái + điện thoại phải */
+const TL = /*TIMELINE*/;
+
+const capBox = document.getElementById("caps");
+const phoneWrap = document.getElementById("phoneWrap");
+const openEl = document.getElementById("open");
+const closeEl = document.getElementById("close");
+
+// Dựng sẵn DOM cho từng khối chữ
+const capEls = TL.map(b => {
+  if (b.layout === "full") return null;
+  const d = document.createElement("div");
+  d.className = "cap";
+  d.innerHTML =
+    (b.kicker ? `<div class="kicker">${b.kicker}</div>` : "") +
+    (b.title ? `<h1 class="title">${b.title}</h1>` : "") +
+    (b.sub ? `<p class="sub">${b.sub}</p>` : "") +
+    (b.bullets ? `<ul class="bullets">${b.bullets.map(x => `<li><span class="dot"></span><span>${x}</span></li>`).join("")}</ul>` : "") +
+    (b.note ? `<div class="note">${b.note}</div>` : "");
+  capBox.appendChild(d);
+  // căn giữa theo chiều dọc sau khi đã có chiều cao thật
+  d.style.top = Math.round((1080 - d.offsetHeight) / 2) + "px";
+  return d;
+});
+
+const screens = {};
+document.querySelectorAll(".screen").forEach(s => screens[s.id.slice(2)] = s);
+
+function show(el, o, dy) {
+  el.style.opacity = o;
+  el.style.transform = `translateY(${dy}px)`;
+}
+
+/** Hiện dần từng dòng trong màn hình đang chạy */
+function stagger(screenEl, lt, start, step) {
+  screenEl.querySelectorAll("[data-ap]").forEach(el => {
+    const i = +el.dataset.ap;
+    const p = outCubic(seg(lt, start + i*step, start + i*step + .5));
+    el.style.opacity = p;
+    el.style.transform = `translateY(${(1-p)*14}px)`;
+  });
+}
+
+/** Ngón tay chạm: đi vào, nhấn, toả sóng */
+function tapAt(id, ripId, lt, t0, x, y) {
+  const tap = document.getElementById(id), rip = document.getElementById(ripId);
+  const inP = seg(lt, t0 - .45, t0);
+  const press = seg(lt, t0, t0 + .18);
+  const out = seg(lt, t0 + .5, t0 + .9);
+  tap.style.left = x + "px"; tap.style.top = (y + lerp(26, 0, outCubic(inP))) + "px";
+  tap.style.opacity = inP * (1 - out);
+  tap.style.transform = `scale(${lerp(1, .78, press)})`;
+  const r = seg(lt, t0, t0 + .7);
+  rip.style.left = x + "px"; rip.style.top = y + "px";
+  rip.style.opacity = r > 0 ? (1 - r) * .9 : 0;
+  rip.style.transform = `scale(${lerp(1, 2.6, outCubic(r))})`;
+}
+
+window.setT = function (t) {
+  // khối đang chạy
+  let cur = TL[0], idx = 0;
+  for (let i = 0; i < TL.length; i++) if (t >= TL[i].t0) { cur = TL[i]; idx = i; }
+  const lt = t - cur.t0;                    // thời gian trong khối
+  const dur = cur.t1 - cur.t0;
+  const FADE = .55;
+  // vào / ra
+  const a = outCubic(seg(lt, 0, FADE)) * (1 - seg(lt, dur - FADE, dur));
+
+  // chữ
+  capEls.forEach((el, i) => {
+    if (!el) return;
+    if (i !== idx) { el.style.opacity = 0; return; }
+    show(el, a, (1 - outCubic(seg(lt, 0, FADE))) * 26 + seg(lt, dur - FADE, dur) * -18);
+  });
+
+  // logo mở / kết
+  openEl.style.opacity = cur.full === "open" ? a : 0;
+  closeEl.style.opacity = cur.full === "close" ? a : 0;
+  if (cur.full === "open") {
+    const k = lerp(.86, 1, outCubic(seg(lt, 0, 1.4)));
+    openEl.style.transform = `scale(${k})`;
+  }
+  if (cur.full === "close") {
+    closeEl.style.transform = `scale(${lerp(1.06, 1, outCubic(seg(lt, 0, 1.2)))})`;
+  }
+
+  // điện thoại
+  phoneWrap.style.opacity = cur.layout === "full" ? 0 : a;
+  phoneWrap.style.transform =
+    `translateY(${(1 - outCubic(seg(lt, 0, .8))) * 40}px) scale(${lerp(.97, 1, outCubic(seg(lt, 0, .8)))})`;
+
+  // màn hình trong điện thoại
+  for (const k in screens) screens[k].style.opacity = 0;
+  // thanh tab dưới: ẩn ở màn chi tiết món (app cũng không hiện ở đó)
+  document.getElementById("navbar").style.opacity = cur.screen === "chat" ? 0 : 1;
+  const navOn = { home: 0, scan: 1, det: 1, plan: 0, plan2: 0 }[cur.screen];
+  document.querySelectorAll("#navbar div").forEach((d, i) =>
+    d.classList.toggle("on", i === navOn));
+  if (cur.screen) {
+    const s = screens[cur.screen];
+    s.style.opacity = 1;
+    stagger(s, lt, cur.apStart === undefined ? .5 : cur.apStart, cur.apStep === undefined ? .22 : cur.apStep);
+  }
+
+  // hiệu ứng riêng từng cảnh
+  if (cur.screen === "scan") {
+    const hot = document.getElementById("dropHot");
+    hot.style.opacity = 1; hot.style.transform = "none";
+    tapAt("tap1", "rip1", lt, .9, 190, 150);
+    const shot = document.getElementById("shot");
+    const p = outCubic(seg(lt, 1.3, 2.0));
+    shot.style.opacity = p;
+    shot.style.transform = `scale(${lerp(.94, 1, p)})`;
+    const scanning = seg(lt, 2.0, 5.2);
+    const ov = document.getElementById("scanOv");
+    ov.style.opacity = scanning > 0 && scanning < 1 ? 1 : 0;
+    document.getElementById("spin").style.transform = `rotate(${lt * 520}deg)`;
+    const laser = document.getElementById("laser");
+    laser.style.opacity = scanning > 0 && scanning < 1 ? .9 : 0;
+    laser.style.top = (12 + 226 * (0.5 - 0.5 * Math.cos(lt * 3.4))) + "px";
+  }
+  if (cur.screen === "det") tapAt("tap2", "rip2", lt, 3.4, 300, 700);
+  if (cur.screen === "plan") tapAt("tap3", "rip3", lt, 3.6, 300, 690);
+  if (cur.screen === "chat") {
+    const sh = document.getElementById("sheet");
+    const p = outCubic(seg(lt, .3, 1.1));
+    sh.style.transform = `translateY(${(1 - p) * 320}px)`;
+    tapAt("tap4", "rip4", lt, 4.6, 300, 800);
+  }
+};
+
+window.setT(0);
+window.READY = true;
+</script>
+</body>
+</html>
