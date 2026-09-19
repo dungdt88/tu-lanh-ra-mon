@@ -5,6 +5,7 @@ import "@fontsource/be-vietnam-pro/600.css";
 import "@fontsource/be-vietnam-pro/700.css";
 import "./globals.css";
 import { BottomNav } from "@/components/bottom-nav";
+import { Splash } from "@/components/splash";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CatalogProvider } from "@/lib/catalog-context";
 import { getCatalog } from "@/lib/repo/catalog";
@@ -36,6 +37,7 @@ export default async function RootLayout({
   return (
     <html lang="vi" className="h-full" suppressHydrationWarning>
       <body className="bg-muted/40 min-h-full" suppressHydrationWarning>
+        <Splash />
         <ThemeProvider>
           <CatalogProvider catalog={catalog}>
             <div className="bg-background mx-auto flex min-h-dvh w-full max-w-lg flex-col md:max-w-2xl md:border-x">
