@@ -17,6 +17,7 @@ import { ROLE_LABEL } from "@/data/dishes";
 import { useCatalog } from "@/lib/catalog-context";
 import { usePantry } from "@/lib/pantry-store";
 import { useChatStore } from "@/lib/chat-store";
+import { duongDanMon } from "@/lib/dish-link";
 import { applyOverrides, filterByAvoid } from "@/lib/dish-override";
 import { useMounted } from "@/lib/use-mounted";
 import { buildMealPlans, rankDishes, stapleIds } from "@/lib/suggest";
@@ -175,7 +176,7 @@ export default function HomePage() {
                   {featured.dishes.map((match) => (
                     <Link
                       key={match.dish.id}
-                      href={`/mon/${match.dish.slug}`}
+                      href={duongDanMon(match.dish)}
                       prefetch
                       className="hover:bg-muted/60 -mx-2 flex min-h-14 items-center gap-3 rounded-xl px-2 py-2 transition-colors active:scale-[0.99]"
                     >

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ROLE_LABEL } from "@/data/dishes";
+import { duongDanMon } from "@/lib/dish-link";
 import { useCatalog } from "@/lib/catalog-context";
 import type { MealPlan } from "@/lib/types";
 
@@ -38,7 +39,7 @@ export function MealPlanCard({
         {plan.dishes.map((match) => (
           <Link
             key={match.dish.id}
-            href={`/mon/${match.dish.slug}`}
+            href={duongDanMon(match.dish)}
             className="hover:bg-muted/60 -mx-2 flex min-h-12 items-center gap-3 rounded-lg px-2 py-2 transition-colors"
           >
             <span className="text-xl">{match.dish.emoji}</span>

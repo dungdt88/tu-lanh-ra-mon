@@ -1,10 +1,46 @@
 import type { NextConfig } from "next";
 
+const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
+  : undefined;
+
+// Khi mở app ra ngoài qua tunnel (zrok, ngrok, cloudflared), trình duyệt gửi
+// Origin là tên miền tunnel chứ không phải localhost. Next chặn cả asset
+// _next/* lẫn Server Action đến từ origin lạ, nên phải khai báo tên miền đó.
+// Lấy từ NEXT_PUBLIC_SITE_URL để không ghi cứng địa chỉ của một phiên tunnel.
+const siteHost = process.env.NEXT_PUBLIC_SITE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SITE_URL).host
+  : undefined;
+
 const nextConfig: NextConfig = {
-  // Cho phép mở dev server từ điện thoại/iPad cùng wifi (npm run dev:lan).
-  // Không có dòng này, Next.js chặn asset _next/* khi Origin khác localhost
-  // -> trang vẫn hiện (SSR) nhưng JS không chạy được, mọi nút bấm im re.
+  // Ảnh món ăn nằm trong Supabase Storage. Host lấy từ env chứ không ghi cứng:
+  // mỗi project Supabase là một tên miền khác.
+  images: supabaseHost
+    ? {
+        remotePatterns: [
+          {
+            protocol: "https",
+            hostname: supabaseHost,
+            pathname: "/storage/v1/object/public/**",
+          },
+        ],
+      }
+    : undefined,
+
+  // Server Action gửi kèm Origin; qua tunnel nó khác Host nên Next từ chối
+  // với "x-forwarded-host does not match origin" nếu không khai ở đây.
+  experimental: {
+    serverActions: siteHost ? { allowedOrigins: [siteHost] } : undefined,
+  },
+
+  // Cho phép mở dev server từ điện thoại/iPad cùng wifi (npm run dev:lan) và
+  // qua tunnel. Không có dòng này, Next.js chặn asset _next/* khi Origin khác
+  // localhost -> trang vẫn hiện (SSR) nhưng JS không chạy, mọi nút bấm im re.
   allowedDevOrigins: [
+    ...(siteHost ? [siteHost] : []),
+    "*.share.zrok.io",
+    "*.ngrok-free.app",
+    "*.trycloudflare.com",
     "192.168.*.*",
     "10.*.*.*",
     "172.16.*.*",

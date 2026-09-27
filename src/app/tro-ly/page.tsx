@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ChatPanel } from "@/components/chat-panel";
+import { duongDanMon } from "@/lib/dish-link";
 import { useCatalog } from "@/lib/catalog-context";
 import { usePantry } from "@/lib/pantry-store";
 import { MEAL_THREAD, useChatStore } from "@/lib/chat-store";
@@ -161,7 +162,7 @@ export default function TroLyPage() {
                     {pickedDishes.map((dish) => (
                       <Link
                         key={dish.id}
-                        href={`/mon/${dish.slug}`}
+                        href={duongDanMon(dish)}
                         prefetch
                         className="hover:bg-muted/60 flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2 transition-colors active:scale-[0.99]"
                       >

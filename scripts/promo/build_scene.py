@@ -56,7 +56,7 @@ TIMELINE = [
         "t0": 58, "t1": 70, "layout": "split", "screen": "chat",
         "kicker": "Nhà nào kiểu nấy",
         "title": "Nói một câu,<br />món chỉnh theo nhà mình",
-        "sub": "Bé không ăn cay, ông bà kiêng mặn — nói là app nhớ cho lần sau.",
+        "sub": "Bé không ăn cay, ông bà kiêng mặn — nói là app ghi nhớ cho lần sau.",
         "note": "Trợ lý chỉ đề xuất — bạn bấm duyệt thì món mới đổi",
     },
     {

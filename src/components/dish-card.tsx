@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ROLE_LABEL } from "@/data/dishes";
 import { useCatalog } from "@/lib/catalog-context";
+import { duongDanMon } from "@/lib/dish-link";
 import type { DishMatch } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +29,7 @@ export function DishCard({
         className,
       )}
     >
-      <Link href={`/mon/${dish.slug}`} className="block p-4">
+      <Link href={duongDanMon(dish)} className="block p-4">
         <div className="flex items-start gap-3">
           <div className="bg-accent flex size-12 shrink-0 items-center justify-center rounded-xl text-2xl">
             {dish.emoji}
@@ -50,9 +51,11 @@ export function DishCard({
               <span className="flex items-center gap-1">
                 <Clock className="size-3.5" /> {dish.minutes} phút
               </span>
-              <span className="flex items-center gap-1">
-                <Flame className="size-3.5" /> {dish.nutrition.kcal} kcal
-              </span>
+              {dish.nutrition.kcal > 0 && (
+                <span className="flex items-center gap-1">
+                  <Flame className="size-3.5" /> {dish.nutrition.kcal} kcal
+                </span>
+              )}
               <span className="flex items-center gap-1">
                 <Users className="size-3.5" /> {dish.servings} người
               </span>

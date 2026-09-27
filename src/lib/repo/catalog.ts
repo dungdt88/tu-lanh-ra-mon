@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { DISHES } from "@/data/dishes";
 import { INGREDIENTS } from "@/data/ingredients";
 import { createClient } from "@/lib/supabase/server";
@@ -65,8 +66,11 @@ function toDish(row: DishRow, links: DishIngredientRow[]): Dish {
  * Nguồn dữ liệu duy nhất cho danh mục món và nguyên liệu.
  * Có Supabase thì đọc DB, chưa có thì dùng dữ liệu mock trong src/data,
  * nên app luôn chạy được kể cả khi chưa cấu hình gì.
+ *
+ * Bọc `cache()` vì một request có thể hỏi danh mục nhiều lần (layout, feed,
+ * trang chi tiết) - không có nó là bấy nhiêu lượt gọi Supabase.
  */
-export async function getCatalog(): Promise<Catalog> {
+export const getCatalog = cache(async (): Promise<Catalog> => {
   const supabase = await createClient();
   if (!supabase) return MOCK_CATALOG;
 
@@ -103,4 +107,4 @@ export async function getCatalog(): Promise<Catalog> {
     ),
     source: "supabase",
   };
-}
+});

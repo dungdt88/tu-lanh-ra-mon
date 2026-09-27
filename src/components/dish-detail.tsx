@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/page-header";
+import { ShareButton } from "@/components/share-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ROLE_LABEL } from "@/data/dishes";
 import { DishChat } from "@/components/dish-chat";
@@ -42,7 +43,18 @@ export function DishDetail({ dish: baseDish }: { dish: Dish }) {
         title={dish.name}
         subtitle={ROLE_LABEL[dish.role]}
         backHref="/"
-        action={<ThemeToggle />}
+        action={
+          <div className="flex items-center gap-1">
+            <ShareButton
+              path={`/mon/${dish.slug}`}
+              title={`${dish.name} · Tủ Lạnh Ra Món`}
+              text={dish.summary}
+              label=""
+              variant="ghost"
+            />
+            <ThemeToggle />
+          </div>
+        }
       />
 
       <div className="space-y-5 px-4">
