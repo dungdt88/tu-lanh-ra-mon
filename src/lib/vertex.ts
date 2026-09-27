@@ -22,7 +22,11 @@ export type CauHinhVertex = {
 };
 
 export type VertexResponse = {
-  candidates?: { content?: { parts?: { text?: string }[] } }[];
+  candidates?: {
+    content?: { parts?: { text?: string }[] };
+    finishReason?: string;
+  }[];
+  usageMetadata?: Record<string, number>;
   error?: { message?: string };
 };
 
@@ -115,9 +119,22 @@ export async function goiVertex(
   return data;
 }
 
-/** Lấy phần text đầu tiên trong câu trả lời, ném lỗi nếu không có. */
+/**
+ * Lấy phần text đầu tiên trong câu trả lời.
+ *
+ * Kèm finishReason vào lỗi vì nguyên nhân hay gặp nhất là MAX_TOKENS trên model
+ * biết suy luận: nó tiêu token vào phần nghĩ trước, hết hạn mức thì không còn
+ * token nào cho phần chữ trả ra. Thiếu finishReason thì lỗi này trông y hệt lỗi
+ * mạng hoặc lỗi quyền.
+ */
 export function layText(data: VertexResponse): string {
   const text = data.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;
-  if (!text) throw new Error("Vertex không trả về nội dung");
-  return text;
+  if (text) return text;
+
+  const ly = data.candidates?.[0]?.finishReason;
+  throw new Error(
+    ly
+      ? `Vertex không trả về nội dung (finishReason: ${ly})`
+      : "Vertex không trả về nội dung",
+  );
 }

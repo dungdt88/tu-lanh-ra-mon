@@ -22,6 +22,23 @@ const cau: CauHinhVertex = {
   accessToken: process.env.VERTEX_ACCESS_TOKEN || undefined,
 };
 
+/** In nguyên văn câu trả lời để đọc finishReason và usageMetadata. */
+async function inRaw() {
+  try {
+    const data = await goiVertex(
+      cau,
+      {
+        contents: [{ role: "user", parts: [{ text: "Trả lời đúng: OK" }] }],
+        generationConfig: { temperature: 0, maxOutputTokens: 256 },
+      },
+      20_000,
+    );
+    console.error(JSON.stringify(data, null, 2));
+  } catch (e) {
+    console.error(`(không lấy được: ${e instanceof Error ? e.message : e})`);
+  }
+}
+
 async function main() {
   console.log(`project  ${cau.project || "(trống)"}`);
   console.log(`location ${cau.location}`);
@@ -42,7 +59,9 @@ async function main() {
       cau,
       {
         contents: [{ role: "user", parts: [{ text: "Trả lời đúng: OK" }] }],
-        generationConfig: { temperature: 0, maxOutputTokens: 16 },
+        // 16 token là không đủ: model biết suy luận tiêu token vào phần nghĩ
+        // trước, hết hạn mức thì phần chữ trả ra rỗng.
+        generationConfig: { temperature: 0, maxOutputTokens: 256 },
       },
       20_000,
     );
@@ -51,12 +70,26 @@ async function main() {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`✗ ${message}\n`);
-    console.error("Thường do một trong những nguyên nhân:");
-    console.error("  - Chưa bật Vertex AI API cho project");
-    console.error("  - Service account thiếu role roles/aiplatform.user");
-    console.error(`  - Model "${cau.model}" không có ở vùng ${cau.location}`);
-    console.error("  - File khoá sai đường dẫn hoặc sai project");
-    console.error("  - Project chưa bật billing");
+
+    // Gọi được nhưng không có chữ là chuyện khác hẳn gọi không được: đừng gợi ý
+    // nhầm sang quyền hay billing khi thật ra đã qua hết những cửa đó.
+    if (message.includes("không trả về nội dung")) {
+      console.error("Gọi được Vertex rồi - xác thực và quyền đều OK.");
+      console.error("Câu trả lời không có phần chữ. Thường do:");
+      console.error("  - MAX_TOKENS: model tiêu hết token vào phần nghĩ");
+      console.error("  - SAFETY: bộ lọc chặn câu trả lời");
+      console.error("\nXem nguyên văn câu trả lời để biết chắc:");
+      await inRaw();
+    } else {
+      console.error("Thường do một trong những nguyên nhân:");
+      console.error("  - Chưa bật Vertex AI API cho project");
+      console.error("  - Tài khoản thiếu role roles/aiplatform.user");
+      console.error(`  - Model "${cau.model}" không có ở vùng ${cau.location}`);
+      console.error("  - Chưa chạy gcloud auth application-default login");
+      console.error(
+        "  - Chưa set-quota-project, hoặc project chưa bật billing",
+      );
+    }
     process.exitCode = 1;
   }
 }
