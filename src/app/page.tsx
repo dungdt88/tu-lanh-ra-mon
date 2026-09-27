@@ -1,23 +1,19 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { Clock, RefreshCw, ShoppingBasket } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DishCard } from "@/components/dish-card";
+import { FeaturedPlanCard } from "@/components/featured-plan-card";
 import { MealPlanCard } from "@/components/meal-plan-card";
 import { QuickPantry } from "@/components/quick-pantry";
+import { ScanResultBanner } from "@/components/scan-result-banner";
 import { ScanUploader } from "@/components/scan-uploader";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { ROLE_LABEL } from "@/data/dishes";
 import { useCatalog } from "@/lib/catalog-context";
 import { usePantry } from "@/lib/pantry-store";
 import { useChatStore } from "@/lib/chat-store";
-import { duongDanMon } from "@/lib/dish-link";
 import { applyOverrides, filterByAvoid } from "@/lib/dish-override";
 import { useMounted } from "@/lib/use-mounted";
 import { buildMealPlans, rankDishes, stapleIds } from "@/lib/suggest";
@@ -39,7 +35,7 @@ function slotTheoGio(hour: number): MealSlot {
 
 export default function HomePage() {
   const { set, items, hydrated } = usePantry();
-  const { dishes: rawDishes, ingredients, ingredientName } = useCatalog();
+  const { dishes: rawDishes, ingredients } = useCatalog();
   const { overrides, prefs, hydrated: chatHydrated } = useChatStore();
 
   // Món đã được trợ lý chỉnh, và bỏ những món dùng nguyên liệu cả nhà cần tránh.
@@ -56,11 +52,14 @@ export default function HomePage() {
   const [chosenSlot, setChosenSlot] = React.useState<MealSlot | null>(null);
   const [offset, setOffset] = React.useState(0);
   const [showMore, setShowMore] = React.useState(false);
+  const [vuaQuet, setVuaQuet] = React.useState<number | null>(null);
   const goiYRef = React.useRef<HTMLDivElement>(null);
 
-  // Thêm nguyên liệu từ ảnh xong thì cuộn xuống mâm cơm vừa cập nhật
-  function xemGoiY() {
+  // Quét xong thì đưa mắt về mâm cơm vừa tính lại, kèm một dòng xác nhận -
+  // ScanUploader reset sạch nên không còn dấu vết nào của lần quét.
+  function xemGoiY(soLuong: number) {
     setOffset(0);
+    setVuaQuet(soLuong);
     goiYRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -124,12 +123,16 @@ export default function HomePage() {
       </header>
 
       <div className="space-y-5 px-4">
-        {/* Mở app là thấy ô tải ảnh ngay: chụp/tải ảnh tủ lạnh là cách nhanh nhất */}
-        <ScanUploader compact resetAfterDone onDone={xemGoiY} />
+        {/* Câu trả lời đứng trước mọi thứ khác: mở app là thấy ngay, quét xong
+            cuộn về đây cũng thấy ngay. Ô tải ảnh và hàng chip là cách chỉnh cho
+            sát hơn, nên nằm sau. */}
+        <div ref={goiYRef} className="scroll-mt-28" />
 
-        <QuickPantry />
-
-        <div ref={goiYRef} className="scroll-mt-32" />
+        {/* 0 nguyên liệu thì không có gì để xác nhận - ScanUploader đã tự nói
+            là không nhận ra gì trong ảnh */}
+        {vuaQuet !== null && vuaQuet > 0 && (
+          <ScanResultBanner soLuong={vuaQuet} onDong={() => setVuaQuet(null)} />
+        )}
 
         {!hydrated ? (
           <Card>
@@ -162,76 +165,32 @@ export default function HomePage() {
           </section>
         ) : (
           featured && (
-            <Card className="border-primary/30 gap-3">
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold">Mâm cơm gợi ý</p>
-                  <Badge variant="secondary" className="gap-1">
-                    <Clock className="size-3" />
-                    {featured.minutes} phút
-                  </Badge>
-                </div>
-
-                <div className="space-y-1">
-                  {featured.dishes.map((match) => (
-                    <Link
-                      key={match.dish.id}
-                      href={duongDanMon(match.dish)}
-                      prefetch
-                      className="hover:bg-muted/60 -mx-2 flex min-h-14 items-center gap-3 rounded-xl px-2 py-2 transition-colors active:scale-[0.99]"
-                    >
-                      <span className="bg-accent flex size-11 shrink-0 items-center justify-center rounded-xl text-2xl">
-                        {match.dish.emoji}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-medium">
-                          {match.dish.name}
-                        </span>
-                        <span className="text-muted-foreground block truncate text-xs">
-                          {ROLE_LABEL[match.dish.role]} · {match.dish.minutes}{" "}
-                          phút
-                          {match.missing.length === 0 && " · đủ đồ"}
-                        </span>
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-
-                {featured.missing.length > 0 && (
-                  <>
-                    <Separator />
-                    <p className="text-muted-foreground flex items-start gap-1.5 text-xs">
-                      <ShoppingBasket className="mt-0.5 size-3.5 shrink-0" />
-                      <span>
-                        Ghé chợ mua:{" "}
-                        <span className="text-foreground font-medium">
-                          {featured.missing.map(ingredientName).join(", ")}
-                        </span>
-                      </span>
-                    </p>
-                  </>
-                )}
-
-                <Button
-                  variant="outline"
-                  className="min-h-11 w-full"
-                  onClick={() => setOffset((value) => value + 1)}
-                >
-                  <RefreshCw /> Đổi mâm khác
-                </Button>
-              </CardContent>
-            </Card>
+            <FeaturedPlanCard
+              plan={featured}
+              viTri={(offset % plans.length) + 1}
+              tong={plans.length}
+              onDoiMam={() => setOffset((value) => value + 1)}
+            />
           )
         )}
 
+        {/* Tủ lạnh trống thì gợi ý chỉ là phỏng đoán - nói thẳng và chỉ việc cần
+            làm, thay vì một dòng chú thích mờ dưới đáy thẻ */}
         {hydrated && items.length === 0 && (
           <p className="text-muted-foreground text-center text-xs">
-            Đang gợi ý chung. Chạm nguyên liệu phía trên hoặc quét tủ để sát
-            hơn.
+            Đang gợi ý chung cho cả nhà. Quét tủ lạnh hoặc chạm nguyên liệu bên
+            dưới để sát hơn.
           </p>
         )}
 
-        {/* Màn nhỏ: gấp lại cho gọn. Màn lớn: hiện luôn vì còn nhiều chỗ trống */}
+        {/* Hai cách chỉnh cho sát hơn, đứng sau câu trả lời */}
+        <ScanUploader compact resetAfterDone onDone={xemGoiY} />
+
+        <QuickPantry />
+
+        {/* Màn nhỏ gấp lại cho gọn; màn rộng mở sẵn vì gấp cả hai mục lại để
+            trống nửa trang dưới. Thứ tự và độ đậm nhạt mới là cái giữ tiêu điểm
+            cho mâm gợi ý, không phải việc ẩn mấy mục này đi. */}
         {!laBuaSang && !showMore && (
           <Button
             variant="ghost"
