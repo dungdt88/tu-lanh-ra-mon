@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCatalog } from "@/lib/repo/catalog";
 import { hasGemini } from "@/lib/gemini";
 import { chatWithGemini, type RawChatResult } from "@/lib/gemini-chat";
+import { traLoiMoPhong } from "@/lib/chat-mock";
 import type { ChatRequest, ChatResponse, DishProposal } from "@/lib/chat-api";
 
 /**
@@ -141,15 +142,19 @@ export async function POST(request: Request) {
   }
 
   // ------------------------------------------------------------------ mock
-  const why = hasGemini
-    ? "Trợ lý đang bận, anh/chị thử lại sau một chút nhé."
-    : "Chưa cắm GEMINI_API_KEY nên mình chưa chỉnh món thật được.";
-
-  return NextResponse.json({
-    source: "mock",
-    reply:
-      body.scope === "dish"
-        ? `${why} Trong lúc đó, món này vẫn nấu bình thường theo các bước sẵn có.`
-        : `${why} Trong lúc đó, mình vẫn gợi ý mâm theo nguyên liệu đang có trong tủ.`,
-  } satisfies ChatResponse);
+  // Trả lời sẵn: đủ để bấm thử luồng chỉnh món và ràng buộc cả nhà mà không
+  // cần key. Xem src/lib/chat-mock.ts.
+  return NextResponse.json(
+    traLoiMoPhong(
+      {
+        scope: body.scope,
+        messages,
+        dish: body.dish,
+        pantry: body.pantry,
+        prefs: body.prefs,
+      },
+      catalog,
+      hasGemini,
+    ) satisfies ChatResponse,
+  );
 }
