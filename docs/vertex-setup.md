@@ -59,25 +59,58 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
 Console: **IAM & Admin → Service Accounts → Create**, rồi **IAM → Grant access**
 với role **Vertex AI User**.
 
-## 4. Tải khoá về
+## 4. Lấy credential
+
+Có hai đường. **Thử ADC trước** — nhiều project không cho tạo khoá service account.
+
+### 4a. ADC (đường đang dùng)
+
+```bash
+gcloud auth application-default login
+gcloud auth application-default set-quota-project PROJECT_ID
+```
+
+Credential nằm ở `~/.config/gcloud/application_default_credentials.json`, ngoài
+repo, không có gì phải gitignore. Để trống `GOOGLE_APPLICATION_CREDENTIALS` thì
+`vertex.ts` tự dùng ADC.
+
+Bước `set-quota-project` hay bị bỏ qua rồi nhận 403 khó hiểu: credential của
+người dùng phải được chỉ rõ tính quota vào project nào.
+
+Đổi lại: ADC gắn với tài khoản của bạn, không mang lên server được. Dự án này
+chạy ở máy nên không sao.
+
+### 4b. Khoá service account (nếu project cho phép)
 
 ```bash
 gcloud iam service-accounts keys create ./gcp-key.json \
   --iam-account=tu-lanh-ra-mon@PROJECT_ID.iam.gserviceaccount.com
 ```
 
-Console: service account → tab **Keys** → **Add key → Create new key → JSON**.
+Rồi trỏ `GOOGLE_APPLICATION_CREDENTIALS=./gcp-key.json`.
 
-> **Đây là bí mật dài hạn.** `.gitignore` đã chặn `gcp-key.json`, `*-key.json`,
-> `*-service-account*.json`. Đừng đổi tên thành thứ khác rồi commit; đừng dán nội
-> dung nó vào chat, issue hay ảnh chụp màn hình. Lộ thì thu hồi ngay:
+> **Khoá này là bí mật dài hạn.** `.gitignore` đã chặn `gcp-key.json`,
+> `*-key.json`, `*-service-account*.json`. Lộ thì thu hồi ngay:
 > `gcloud iam service-accounts keys delete KEY_ID --iam-account=...`
+
+**Gặp `FAILED_PRECONDITION: Key creation is not allowed on this service account`**
+kèm `constraints/iam.disableServiceAccountKeyCreation`: tổ chức chặn tạo khoá.
+Google bật sẵn policy này cho project tự sinh kiểu `gen-lang-client-*` (project
+mà AI Studio tạo hộ). Dùng 4a, đừng cố phá policy.
+
+Kiểm tra file khoá có thật không — `keys create` tạo file trước khi ghi nên hỏng
+giữa chừng sẽ để lại file **0 byte** trông như thành công:
+
+```bash
+ls -l gcp-key.json      # 0 byte = chưa có gì
+```
 
 ## 5. Điền `.env.local`
 
 ```bash
 GOOGLE_CLOUD_PROJECT=tu-lanh-ra-mon-481207
-GOOGLE_APPLICATION_CREDENTIALS=./gcp-key.json
+# Để trống khi dùng ADC (4a); trỏ tới file khoá khi dùng 4b
+GOOGLE_APPLICATION_CREDENTIALS=
 ```
 
 Hai dòng dưới có mặc định sẵn, để trống cũng được:
@@ -116,7 +149,9 @@ nên mở app lên nhìn không đoán được lỗi nằm ở đâu.
 | `Vertex AI API has not been used in project ... before or it is disabled` | Chưa làm bước 2 |
 | `Permission 'aiplatform.endpoints.predict' denied` | Service account thiếu `roles/aiplatform.user` |
 | `Publisher Model ... not found` | Model không có ở vùng này — đổi `GEMINI_MODEL` hoặc `GOOGLE_CLOUD_LOCATION` |
-| `Could not load the default credentials` | Sai đường dẫn `GOOGLE_APPLICATION_CREDENTIALS` |
+| `Could not load the default credentials` | Sai đường dẫn `GOOGLE_APPLICATION_CREDENTIALS`, hoặc chưa chạy `gcloud auth application-default login` |
+| `FAILED_PRECONDITION: Key creation is not allowed` | Tổ chức chặn tạo khoá — dùng ADC (4a) |
+| 403 nhắc `quota project` | Chưa chạy `gcloud auth application-default set-quota-project` |
 | `403 ... billing` | Project chưa bật billing |
 | `404` mà mọi thứ nhìn đúng | Điền tên hiển thị thay vì Project ID |
 
