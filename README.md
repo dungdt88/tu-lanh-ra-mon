@@ -39,7 +39,8 @@ thì nhận diện ảnh chạy bản mô phỏng.
 | ------------------------------- | ----------------------------------------------------- |
 | `NEXT_PUBLIC_SUPABASE_URL`      | supabase.com → project → Settings → API → Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | cùng trang, mục `anon public`                         |
-| `GEMINI_API_KEY`                | aistudio.google.com/apikey → Create API key           |
+| `GOOGLE_CLOUD_PROJECT`          | console.cloud.google.com → Project ID (xem docs/vertex-setup.md) |
+| `GOOGLE_APPLICATION_CREDENTIALS`| đường dẫn khoá service account, mặc định `./gcp-key.json` |
 
 Điền xong nhớ khởi động lại `npm run dev`.
 
@@ -56,19 +57,17 @@ thì nhận diện ảnh chạy bản mô phỏng.
 7. `npm run db:check` để kiểm tra kết nối và số dòng từng bảng.
 8. `npm run dev` — log server sẽ không còn dòng "tạm dùng dữ liệu mock".
 
-### Gemini (nhận diện ảnh tủ lạnh)
+### Gemini qua Vertex AI
 
-Điền `GEMINI_API_KEY` là `/quet` chuyển sang đọc ảnh thật, màn hình sẽ hiện nhãn
-"Gemini" thay cho dòng nhắc mô phỏng. Model mặc định `gemini-3.6-flash`, đổi bằng
-`GEMINI_MODEL`. Gemini lỗi hoặc hết quota thì API tự lùi về bản mô phỏng và ghi
-log, người dùng không thấy màn hình trắng.
+Nhận diện ảnh, trợ lý chat và kiểm duyệt đều gọi Gemini qua **Vertex AI** (Google
+Cloud), không phải AI Studio. Dựng lần đầu theo `docs/vertex-setup.md`, rồi:
 
-Thứ Gemini thấy mà không có trong danh mục được giữ lại thành nguyên liệu tự thêm
-(`custom-<slug>`) chứ không bị bỏ đi.
+```bash
+npm run vertex:check
+```
 
-Bảng dữ liệu cá nhân (`profiles`, `pantry_items`, `cook_logs`) đã bật RLS: mỗi
-người chỉ đọc/ghi được dữ liệu của chính mình; danh mục món và nguyên liệu thì
-ai cũng đọc được nhưng chỉ `service_role` mới ghi.
+Chưa cấu hình thì app vẫn chạy: nhận diện và trợ lý dùng bản mô phỏng, kiểm duyệt
+còn lưới lọc từ cấm. Model mặc định `gemini-2.5-flash`, đổi bằng `GEMINI_MODEL`.
 
 ## Cấu trúc
 

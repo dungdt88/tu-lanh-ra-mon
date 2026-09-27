@@ -8,7 +8,7 @@ import type {
 import type { ChatScope, Dish, HouseholdPrefs, Ingredient } from "@/lib/types";
 
 /**
- * Trả lời sẵn cho trợ lý bếp khi chưa có GEMINI_API_KEY (hoặc Gemini hỏng).
+ * Trả lời sẵn cho trợ lý bếp khi chưa cấu hình Vertex (hoặc Vertex hỏng).
  *
  * Không phải để thay Gemini: để mọi luồng phía sau trợ lý - đề xuất chỉnh món,
  * bấm đồng ý, ghi ràng buộc cả nhà, chọn món cho mâm cơm - bấm thử được mà
@@ -212,7 +212,7 @@ export function traLoiMoPhong(
   const cau = cauCuoiCuaNguoiDung(input.messages);
   const dauCau = hasGemini
     ? "Trợ lý đang bận nên mình trả lời tạm bằng bản mẫu."
-    : "Đang chạy bản mẫu (chưa cắm GEMINI_API_KEY).";
+    : "Đang chạy bản mẫu (chưa cấu hình Vertex AI).";
 
   if (input.scope === "dish" && input.dish) {
     const dish = input.dish;

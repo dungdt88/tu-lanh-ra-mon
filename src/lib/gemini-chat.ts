@@ -1,14 +1,10 @@
 import "server-only";
-import { GEMINI_API_KEY, GEMINI_BASE_URL, GEMINI_MODEL } from "@/lib/gemini";
+import { VERTEX } from "@/lib/gemini";
+import { goiVertex, layText } from "@/lib/vertex";
 import type { ChatRequest } from "@/lib/chat-api";
 import type { Dish, Ingredient } from "@/lib/types";
 
-type GeminiPart = { text?: string };
-type GeminiContent = { role: "user" | "model"; parts: GeminiPart[] };
-type GeminiResponse = {
-  candidates?: { content?: { parts?: GeminiPart[] } }[];
-  error?: { message?: string };
-};
+type GeminiContent = { role: "user" | "model"; parts: { text?: string }[] };
 
 const DISH_SCHEMA = {
   type: "OBJECT",
@@ -157,36 +153,19 @@ export async function chatWithGemini(
     parts: [{ text: turn.content }],
   }));
 
-  const url = `${GEMINI_BASE_URL}/v1beta/models/${GEMINI_MODEL}:generateContent`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-goog-api-key": GEMINI_API_KEY,
-    },
-    body: JSON.stringify({
+  const data = await goiVertex(
+    VERTEX,
+    {
       systemInstruction: { parts: [{ text: system }] },
       contents,
       generationConfig: {
-        response_mime_type: "application/json",
-        response_schema: isDish ? DISH_SCHEMA : MEAL_SCHEMA,
+        responseMimeType: "application/json",
+        responseSchema: isDish ? DISH_SCHEMA : MEAL_SCHEMA,
         temperature: 0.4,
       },
-    }),
-    signal: AbortSignal.timeout(30_000),
-  });
+    },
+    30_000,
+  );
 
-  const data = (await response.json()) as GeminiResponse;
-
-  if (!response.ok || data.error) {
-    throw new Error(
-      data.error?.message ?? `Gemini trả về HTTP ${response.status}`,
-    );
-  }
-
-  const text = data.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;
-  if (!text) throw new Error("Gemini không trả về nội dung");
-
-  return JSON.parse(text) as RawChatResult;
+  return JSON.parse(layText(data)) as RawChatResult;
 }

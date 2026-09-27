@@ -4,7 +4,10 @@
  *
  * Chạy: npm run test:chat
  */
-process.env.GEMINI_API_KEY = "test-key";
+process.env.GOOGLE_CLOUD_PROJECT = "test-project";
+process.env.GOOGLE_CLOUD_LOCATION = "asia-southeast1";
+// Token giả: có sẵn thì vertex.ts không đi ký JWT lấy token thật
+process.env.VERTEX_ACCESS_TOKEN = "test-token";
 delete process.env.NEXT_PUBLIC_SUPABASE_URL;
 delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

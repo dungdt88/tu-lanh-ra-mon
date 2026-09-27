@@ -92,7 +92,7 @@ cho ra thứ không đúng kiểu mà TypeScript không hề biết.
   `src/lib/gemini.ts`, `src/lib/gemini-chat.ts`, `src/lib/repo/catalog.ts`. Nếu
   vô tình import chúng từ component client, build sẽ **fail** — đó chính là điều
   ta muốn.
-- Chỉ biến `NEXT_PUBLIC_*` được đọc ở client. `GEMINI_API_KEY` và
+- Chỉ biến `NEXT_PUBLIC_*` được đọc ở client. Khoá service account Google Cloud và
   `SUPABASE_SERVICE_ROLE_KEY` không bao giờ.
 - Đọc env tập trung một chỗ (`src/lib/supabase/env.ts`, phần đầu
   `src/lib/gemini.ts`), không rải `process.env` khắp component.
@@ -254,7 +254,7 @@ người sau "dọn dẹp" nhầm.
 ## 12. Không làm
 
 - Không hardcode giá trị cấu hình — dùng biến môi trường.
-- Không để `GEMINI_API_KEY` hay `SUPABASE_SERVICE_ROLE_KEY` chạm tới code client.
+- Không để khoá service account Google Cloud hay `SUPABASE_SERVICE_ROLE_KEY` chạm tới code client.
 - Không sửa tay file trong `src/components/ui/` — shadcn CLI sẽ ghi đè.
 - Không sửa `supabase/seed.sql` trực tiếp — sửa `src/data` rồi `npm run seed:gen`.
 - Không đổi id nguyên liệu / id món đã phát hành.

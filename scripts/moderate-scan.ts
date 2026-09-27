@@ -10,6 +10,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { DB_SCHEMA } from "@/lib/supabase/env";
+import { coVertex } from "@/lib/vertex";
 import { ANH_MON_BUCKET } from "@/lib/storage";
 import {
   kiemDuyetAnhVoi,
@@ -45,10 +46,11 @@ const supabase = createClient<Database>(url, key, {
 });
 
 const cauHinh: CauHinhKiemDuyet = {
-  apiKey: process.env.GEMINI_API_KEY ?? "",
-  model: process.env.GEMINI_MODEL || "gemini-3.6-flash",
-  baseUrl:
-    process.env.GEMINI_BASE_URL || "https://generativelanguage.googleapis.com",
+  project: process.env.GOOGLE_CLOUD_PROJECT ?? "",
+  location: process.env.GOOGLE_CLOUD_LOCATION || "asia-southeast1",
+  model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+  keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS || undefined,
+  accessToken: process.env.VERTEX_ACCESS_TOKEN || undefined,
 };
 
 type ViPham = {
@@ -188,8 +190,10 @@ async function quetCongThuc() {
 }
 
 async function main() {
-  if (!cauHinh.apiKey) {
-    console.log("Chưa có GEMINI_API_KEY - chỉ chạy lưới lọc từ cấm.\n");
+  if (!coVertex(cauHinh)) {
+    console.log(
+      "Chưa cấu hình Vertex (GOOGLE_CLOUD_PROJECT) - chỉ chạy lưới lọc từ cấm.\n",
+    );
   }
 
   await quetBai();

@@ -1,16 +1,22 @@
 import "server-only";
+import { coVertex, goiVertex, layText, type CauHinhVertex } from "@/lib/vertex";
 
 /**
- * Cấu hình Gemini cho việc đọc ảnh tủ lạnh.
- * Chưa có GEMINI_API_KEY thì API nhận diện chạy bằng dữ liệu mô phỏng,
- * app vẫn dùng được bình thường.
+ * Cấu hình Gemini qua Vertex AI cho việc đọc ảnh tủ lạnh.
+ * Chưa cấu hình đủ thì API nhận diện chạy bằng dữ liệu mô phỏng, app vẫn dùng
+ * được bình thường.
  */
-export const GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? "";
-export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
-export const GEMINI_BASE_URL =
-  process.env.GEMINI_BASE_URL || "https://generativelanguage.googleapis.com";
+export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
-export const hasGemini = Boolean(GEMINI_API_KEY);
+export const VERTEX: CauHinhVertex = {
+  project: process.env.GOOGLE_CLOUD_PROJECT ?? "",
+  location: process.env.GOOGLE_CLOUD_LOCATION || "asia-southeast1",
+  model: GEMINI_MODEL,
+  keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS || undefined,
+  accessToken: process.env.VERTEX_ACCESS_TOKEN || undefined,
+};
+
+export const hasGemini = coVertex(VERTEX);
 
 export type DetectedIngredient = {
   /** id trong danh mục, hoặc custom-<slug> nếu Gemini thấy thứ ngoài danh mục */
@@ -18,12 +24,6 @@ export type DetectedIngredient = {
   name: string;
   emoji: string;
   confidence: number;
-};
-
-type GeminiPart = { text?: string };
-type GeminiResponse = {
-  candidates?: { content?: { parts?: GeminiPart[] } }[];
-  error?: { message?: string };
 };
 
 const RESPONSE_SCHEMA = {
@@ -71,43 +71,29 @@ export async function recognizeWithGemini(
   mimeType: string,
   catalog: { id: string; name: string }[],
 ): Promise<{ id: string; name: string; confidence: number }[]> {
-  const url = `${GEMINI_BASE_URL}/v1beta/models/${GEMINI_MODEL}:generateContent`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-goog-api-key": GEMINI_API_KEY,
-    },
-    body: JSON.stringify({
+  const data = await goiVertex(
+    VERTEX,
+    {
       contents: [
         {
+          role: "user",
           parts: [
-            { inline_data: { mime_type: mimeType, data: imageBase64 } },
+            { inlineData: { mimeType, data: imageBase64 } },
             { text: buildPrompt(catalog) },
           ],
         },
       ],
       generationConfig: {
-        response_mime_type: "application/json",
-        response_schema: RESPONSE_SCHEMA,
+        responseMimeType: "application/json",
+        responseSchema: RESPONSE_SCHEMA,
         temperature: 0.1,
       },
-    }),
+    },
     // ảnh tủ lạnh thường nặng, cho thoáng thời gian
-    signal: AbortSignal.timeout(30_000),
-  });
+    30_000,
+  );
 
-  const data = (await response.json()) as GeminiResponse;
-
-  if (!response.ok || data.error) {
-    throw new Error(
-      data.error?.message ?? `Gemini trả về HTTP ${response.status}`,
-    );
-  }
-
-  const text = data.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;
-  if (!text) throw new Error("Gemini không trả về nội dung");
+  const text = layText(data);
 
   const parsed = JSON.parse(text) as {
     items?: { id?: string; name?: string; confidence?: number }[];

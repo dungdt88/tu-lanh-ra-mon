@@ -1,14 +1,11 @@
 import { normalizeText } from "@/lib/text";
+import { coVertex, goiVertex, type CauHinhVertex } from "@/lib/vertex";
 
 /**
- * Cấu hình Gemini truyền từ ngoài vào, không đọc thẳng process.env: module này
+ * Cấu hình Vertex truyền từ ngoài vào, không đọc thẳng process.env: module này
  * dùng chung cho server action (`moderation.ts`) và script quét lại chạy ở máy.
  */
-export type CauHinhKiemDuyet = {
-  apiKey: string;
-  model: string;
-  baseUrl: string;
-};
+export type CauHinhKiemDuyet = CauHinhVertex;
 
 export type LoaiNoiDung = "bai" | "binh-luan" | "cong-thuc";
 
@@ -23,7 +20,7 @@ const NHAN: Record<LoaiNoiDung, string> = {
 };
 
 /**
- * Lưới lọc chạy khi không có GEMINI_API_KEY, và chạy trước cả khi có: bắt được
+ * Lưới lọc chạy khi chưa cấu hình Vertex, và chạy trước cả khi có: bắt được
  * ngay thì khỏi tốn một lượt gọi mạng. Cố tình chỉ gồm từ thô tục rõ ràng -
  * lọc rộng hơn sẽ chặn nhầm người kể chuyện bếp núc.
  */
@@ -50,11 +47,6 @@ function loiVanBan(text: string): string | null {
   return hit ? "Nội dung có từ ngữ không phù hợp." : null;
 }
 
-type GeminiResponse = {
-  candidates?: { content?: { parts?: { text?: string }[] } }[];
-  error?: { message?: string };
-};
-
 const RESPONSE_SCHEMA = {
   type: "OBJECT",
   properties: {
@@ -78,27 +70,18 @@ async function hoiGemini(
   cau: CauHinhKiemDuyet,
   parts: unknown[],
 ): Promise<KetQuaKiemDuyet> {
-  const url = `${cau.baseUrl}/v1beta/models/${cau.model}:generateContent`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-goog-api-key": cau.apiKey,
-    },
-    body: JSON.stringify({
-      contents: [{ parts }],
+  const data = await goiVertex(
+    cau,
+    {
+      contents: [{ role: "user", parts }],
       generationConfig: {
         temperature: 0,
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
       },
-    }),
-    signal: AbortSignal.timeout(8000),
-  });
-
-  const data = (await response.json()) as GeminiResponse;
-  if (!response.ok) throw new Error(data.error?.message ?? "Gemini lỗi");
+    },
+    8000,
+  );
 
   const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!raw) throw new Error("Gemini trả lời rỗng");
@@ -131,7 +114,7 @@ export async function kiemDuyetVanBanVoi(
   const loi = loiVanBan(noiDung);
   if (loi) return { ok: false, lyDo: loi };
 
-  if (!cau.apiKey) return HOP_LE;
+  if (!coVertex(cau)) return HOP_LE;
 
   try {
     return await hoiGemini(cau, [
@@ -158,11 +141,11 @@ export async function kiemDuyetAnhVoi(
   base64: string,
   mimeType: string,
 ): Promise<KetQuaKiemDuyet> {
-  if (!cau.apiKey) return HOP_LE;
+  if (!coVertex(cau)) return HOP_LE;
 
   try {
     return await hoiGemini(cau, [
-      { inline_data: { mime_type: mimeType, data: base64 } },
+      { inlineData: { mimeType, data: base64 } },
       {
         text: [
           "Bạn là người kiểm duyệt ảnh của một ứng dụng nấu ăn gia đình Việt Nam.",

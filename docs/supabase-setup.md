@@ -273,7 +273,7 @@ Kiểm tra: đăng nhập → `/ho-so` → **Công thức nhà mình** → viế
 trang chủ xem nó có nằm trong gợi ý không.
 
 Nội dung đăng lên cộng đồng (bài, bình luận, công thức công khai, ảnh món) đi
-qua `src/lib/moderation.ts` trước khi lưu. Chưa có `GEMINI_API_KEY` thì chỉ còn
+qua `src/lib/moderation.ts` trước khi lưu. Chưa cấu hình Vertex thì chỉ còn
 lưới lọc từ cấm. Quét lại những thứ đã đăng: `npm run mod:scan` (chỉ liệt kê),
 thêm `-- --xoa` để xoá thật — cần `SUPABASE_SERVICE_ROLE_KEY`.
 

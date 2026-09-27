@@ -67,3 +67,9 @@ scripts/promo/*.mp4
 
 # log chay tay
 *.log
+
+# khoa service account cua Google Cloud - BI MAT, khong bao gio commit
+gcp-key.json
+*-key.json
+*-service-account*.json
+gcloud-*.json

@@ -34,10 +34,11 @@ npm run format:check  # prettier --check, không sửa file
 
 npm run test:chat     # rào chắn của POST /api/chat (dùng Gemini giả, không tốn quota)
 npm run test:mod      # rào chắn kiểm duyệt nội dung (cũng dùng Gemini giả)
-npm run test:mock     # bản trả lời sẵn của trợ lý khi chưa có GEMINI_API_KEY
+npm run test:mock     # bản trả lời sẵn của trợ lý khi chưa cấu hình Vertex
 npm run mod:scan      # quét lại bài/bình luận/công thức đã đăng; thêm -- --xoa để xoá
 npm run seed:gen      # sinh supabase/seed.sql từ src/data
 npm run db:check      # kiểm tra kết nối + dữ liệu Supabase
+npm run vertex:check  # kiểm tra Vertex AI: lấy token + gọi thật một lượt
 ```
 
 Trước khi kết thúc một thay đổi: `npm run typecheck && npm run lint`,
@@ -212,10 +213,18 @@ kiểu đó — script `tsx` độc lập trong `scripts/test/`, thêm một dò
 | ------------------------------- | --------- | ----------------------------------------------------------------- |
 | `NEXT_PUBLIC_SUPABASE_URL`      | không     | đọc danh mục từ DB; trống thì dùng `src/data`                     |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | không     | như trên                                                          |
-| `GEMINI_API_KEY`                | không     | nhận diện ảnh + chat; trống thì chạy bản mô phỏng                 |
-| `GEMINI_MODEL`                  | không     | mặc định `gemini-3.6-flash`                                       |
+| `GOOGLE_CLOUD_PROJECT`          | không     | Vertex AI cho nhận diện ảnh + chat + kiểm duyệt; trống thì mô phỏng |
+| `GOOGLE_APPLICATION_CREDENTIALS`| không     | đường dẫn khoá service account. **BÍ MẬT**, đã gitignore          |
+| `GOOGLE_CLOUD_LOCATION`         | không     | mặc định `asia-southeast1`                                        |
+| `GEMINI_MODEL`                  | không     | mặc định `gemini-2.5-flash`                                       |
 | `SUPABASE_SERVICE_ROLE_KEY`     | không     | chỉ cho script chạy ở máy (seed). **Không bao giờ đưa ra client** |
-| `GEMINI_BASE_URL`               | không     | trỏ sang server giả khi test                                      |
+| `VERTEX_ACCESS_TOKEN`           | không     | token có sẵn, dùng khi test thay cho việc tự ký từ file khoá       |
+
+Gemini gọi qua **Vertex AI**, không phải AI Studio: endpoint mang project +
+location, xác thực bằng OAuth bearer token (hết hạn 1 giờ, `src/lib/vertex.ts`
+giữ cache). Cả ba chỗ dùng Gemini — nhận diện ảnh, trợ lý chat, kiểm duyệt —
+đều đi qua `goiVertex()`. Dựng lần đầu: `docs/vertex-setup.md`, kiểm tra bằng
+`npm run vertex:check`.
 
 Đăng nhập dùng Supabase Auth: Google, Facebook, email + mật khẩu và magic link,
 gom hết trong `src/components/login-form.tsx`; mọi luồng đều quay về
@@ -248,7 +257,7 @@ Mọi biến mới đọc qua `src/lib/supabase/env.ts` hoặc module config tư
 
 - Do NOT hardcode giá trị cấu hình — dùng biến môi trường.
 - Do NOT commit secret, `.env.local`, hay key vào repo.
-- Do NOT để `SUPABASE_SERVICE_ROLE_KEY` hay `GEMINI_API_KEY` lọt vào bundle client;
+- Do NOT để `SUPABASE_SERVICE_ROLE_KEY` hay khoá service account lọt vào bundle client;
   code server đụng chúng phải `import "server-only"`.
 - Do NOT sửa tay file trong `src/components/ui/` — chúng do shadcn CLI sinh ra.
 - Do NOT sửa `supabase/seed.sql` trực tiếp — sửa `src/data` rồi `npm run seed:gen`.
@@ -265,6 +274,7 @@ Mọi biến mới đọc qua `src/lib/supabase/env.ts` hoặc module config tư
   **Đọc trước khi thêm giao diện mới.**
 - `docs/conventions.md` — bản đầy đủ của các quy ước trong file này, kèm lý do
 - `docs/supabase-setup.md` — dựng database: schema `tlrm`, quyền, expose API, đổ dữ liệu
+- `docs/vertex-setup.md` — dựng Vertex AI: project, service account, quyền, kiểm tra
 - `README.md` — cách chạy, cách điền key, nguyên tắc UX, cách gợi ý hoạt động, roadmap
 - `src/lib/suggest.ts` — `matchDish()` chấm điểm món, `buildMealPlans()` dựng mâm cơm
 - `supabase/migrations/` — schema và RLS

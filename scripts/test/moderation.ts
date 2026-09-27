@@ -10,11 +10,13 @@ import {
   type CauHinhKiemDuyet,
 } from "@/lib/moderation-core";
 
-const OFFLINE: CauHinhKiemDuyet = { apiKey: "", model: "m", baseUrl: "x" };
+const OFFLINE: CauHinhKiemDuyet = { project: "", location: "", model: "" };
+// accessToken có sẵn nên goiVertex không đi lấy token thật
 const CO_KEY: CauHinhKiemDuyet = {
-  apiKey: "test-key",
+  project: "test-project",
+  location: "asia-southeast1",
   model: "m",
-  baseUrl: "https://gia-lap",
+  accessToken: "test-token",
 };
 
 let traLoi: unknown = { ok: true };

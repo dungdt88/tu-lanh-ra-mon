@@ -9,6 +9,7 @@ repo, không phải kế hoạch — phần chưa làm được tách riêng và
 | [design-system.md](design-system.md) | Token màu, chữ, bo góc, bố cục, component có sẵn |
 | [conventions.md](conventions.md) | Viết code ở repo này theo quy ước nào, và vì sao |
 | [supabase-setup.md](supabase-setup.md) | Dựng database: schema `tlrm`, quyền, expose API, đổ dữ liệu |
+| [vertex-setup.md](vertex-setup.md) | Dựng Vertex AI: project, service account, quyền, kiểm tra, chi phí |
 
 Chỗ khác cần biết:
 

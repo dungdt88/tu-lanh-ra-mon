@@ -1,6 +1,6 @@
 import "server-only";
 
-import { GEMINI_API_KEY, GEMINI_BASE_URL, GEMINI_MODEL } from "@/lib/gemini";
+import { VERTEX } from "@/lib/gemini";
 import {
   kiemDuyetAnhVoi,
   kiemDuyetVanBanVoi,
@@ -10,11 +10,7 @@ import {
 
 export type { KetQuaKiemDuyet, LoaiNoiDung };
 
-const CAU_HINH = {
-  apiKey: GEMINI_API_KEY,
-  model: GEMINI_MODEL,
-  baseUrl: GEMINI_BASE_URL,
-};
+const CAU_HINH = VERTEX;
 
 /** Kiểm duyệt phần chữ trước khi lưu. Xem `moderation-core.ts` cho luật. */
 export function kiemDuyetVanBan(

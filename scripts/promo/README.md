@@ -37,4 +37,4 @@ python3 scripts/promo/render.py --stills 4,27,45,67,86
 - Cảnh quét tủ đang dùng ảnh tủ lạnh vẽ bằng CSS. Có ảnh tủ lạnh thật thì thay
   vào `#shot` sẽ thuyết phục hơn nhiều.
 - Nhận diện ảnh trong video là mô phỏng — đúng với trạng thái app hiện tại
-  (chưa cắm `GEMINI_API_KEY`).
+  (chưa cấu hình Vertex AI).

@@ -1,10 +1,11 @@
 /**
- * Kiểm tra bản trả lời sẵn của trợ lý (chưa cắm GEMINI_API_KEY):
+ * Kiểm tra bản trả lời sẵn của trợ lý (chưa cấu hình Vertex):
  * hỏi gì thì ra đề xuất nấy, và id trả ra luôn là id thật trong danh mục.
  *
  * Chạy: npm run test:mock
  */
-delete process.env.GEMINI_API_KEY;
+delete process.env.GOOGLE_CLOUD_PROJECT;
+delete process.env.VERTEX_ACCESS_TOKEN;
 delete process.env.NEXT_PUBLIC_SUPABASE_URL;
 delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

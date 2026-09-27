@@ -9,7 +9,7 @@ import { slugify } from "@/lib/text";
 
 /**
  * Nhận diện nguyên liệu từ ảnh tủ lạnh.
- * - Có GEMINI_API_KEY: gọi Gemini đọc ảnh thật.
+ * - Đã cấu hình Vertex: gọi Gemini đọc ảnh thật qua Vertex AI.
  * - Chưa có key (hoặc Gemini lỗi): trả danh sách mô phỏng để app vẫn dùng được.
  */
 

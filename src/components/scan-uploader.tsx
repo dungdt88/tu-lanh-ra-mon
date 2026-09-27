@@ -327,7 +327,7 @@ export function ScanUploader({ onDone, compact, resetAfterDone }: Props) {
 
           {source === "mock" && (
             <p className="text-muted-foreground text-center text-[11px]">
-              Đang dùng nhận diện mô phỏng. Điền GEMINI_API_KEY vào .env.local
+              Đang dùng nhận diện mô phỏng. Cấu hình Vertex AI trong .env.local
               để đọc ảnh thật.
             </p>
           )}

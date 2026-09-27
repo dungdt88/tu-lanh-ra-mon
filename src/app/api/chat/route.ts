@@ -7,7 +7,7 @@ import type { ChatRequest, ChatResponse, DishProposal } from "@/lib/chat-api";
 
 /**
  * Một lượt chat với trợ lý bếp.
- * - Có GEMINI_API_KEY: gọi Gemini thật.
+ * - Đã cấu hình Vertex: gọi Gemini thật qua Vertex AI.
  * - Chưa có key (hoặc Gemini lỗi): trả lời mô phỏng để app vẫn dùng được.
  *
  * Mọi id nguyên liệu / id món do AI trả về đều được đối chiếu lại với danh mục

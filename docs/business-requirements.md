@@ -165,7 +165,7 @@ không loại cả món.
 
 Chưa có key, hoặc Gemini lỗi, hoặc quá 30 giây → trả **bản mô phỏng**, không trả
 lỗi. Mọi response mang `source: "gemini" | "mock"` để UI nói rõ, và lời nhắn mô
-phỏng nêu đúng lý do ("Chưa cắm GEMINI_API_KEY..." khác với "Trợ lý đang bận...").
+phỏng nêu đúng lý do ("Chưa cấu hình Vertex AI..." khác với "Trợ lý đang bận...").
 
 Hệ quả: **app chạy đủ tính năng với `.env.local` để trống**. Không Supabase thì
 đọc danh mục mock; không Gemini thì nhận diện và chat chạy bản mô phỏng.
