@@ -2,7 +2,7 @@
 
 **Tủ Lạnh Ra Món** — web app gợi ý mâm cơm từ nguyên liệu đang có trong tủ lạnh.
 Người dùng đích: mẹ đi làm văn phòng, tan làm 5h chiều, nấu cho chồng và 2 con;
-bài toán là *hôm nay ăn gì* — đủ chất, không lặp món, nấu xong trong ~30 phút.
+bài toán là _hôm nay ăn gì_ — đủ chất, không lặp món, nấu xong trong ~30 phút.
 
 Next.js 16 (App Router) + TypeScript, chạy SSR kèm vài route API. Dữ liệu danh mục
 đọc từ Supabase khi có env, không thì rơi về mock trong `src/data`. Nhận diện ảnh
@@ -33,12 +33,16 @@ npm run format        # prettier --write trên src/
 npm run format:check  # prettier --check, không sửa file
 
 npm run test:chat     # rào chắn của POST /api/chat (dùng Gemini giả, không tốn quota)
+npm run test:mod      # rào chắn kiểm duyệt nội dung (cũng dùng Gemini giả)
+npm run test:mock     # bản trả lời sẵn của trợ lý khi chưa có GEMINI_API_KEY
+npm run mod:scan      # quét lại bài/bình luận/công thức đã đăng; thêm -- --xoa để xoá
 npm run seed:gen      # sinh supabase/seed.sql từ src/data
 npm run db:check      # kiểm tra kết nối + dữ liệu Supabase
 ```
 
-Trước khi kết thúc một thay đổi: `npm run typecheck && npm run lint`, và
-`npm run test:chat` nếu có đụng vào `src/app/api/chat` hay `src/lib/gemini-chat.ts`.
+Trước khi kết thúc một thay đổi: `npm run typecheck && npm run lint`,
+`npm run test:chat` nếu có đụng vào `src/app/api/chat` hay `src/lib/gemini-chat.ts`,
+và `npm run test:mod` nếu có đụng vào kiểm duyệt.
 
 Lỗi `Cannot find module '../lightningcss.darwin-arm64.node'` (hoặc native tương tự)
 nghĩa là `node_modules` chứa binary của HĐH khác:
@@ -63,6 +67,12 @@ src/
     tu-lanh/              Toàn bộ danh mục nguyên liệu
     tro-ly/               Trợ lý chat
     mon/[slug]/           Chi tiết món: nguyên liệu, các bước, dinh dưỡng
+    cong-dong/            Feed cộng đồng + trang khoe món
+    cong-thuc/            Công thức nhà mình: danh sách, viết mới, xem, sửa
+    bai/[id]/             Một bài khoe món + bình luận
+    bep/[handle]/         Trang bếp của một người
+    dang-nhap/, ho-so/    Đăng nhập email, sửa hồ sơ
+    auth/                 callback của link đăng nhập, đăng xuất
     api/recognize/        API nhận diện nguyên liệu từ ảnh
     api/chat/             API trợ lý chat
   components/
@@ -78,6 +88,16 @@ src/
     suggest.ts            Chấm điểm món + dựng mâm cơm (mặn + canh + rau)
     gemini.ts             Nhận diện nguyên liệu từ ảnh
     gemini-chat.ts        Trợ lý chat + rào chắn chống bịa id
+    chat-mock.ts          Trả lời sẵn của trợ lý khi chưa cắm key
+    auth.ts               Người đang đăng nhập (server)
+    repo/feed.ts          Đọc bài đăng, bình luận, hồ sơ bếp
+    repo/recipe.ts        Đọc công thức nhà mình (mang hình dạng Dish)
+    dish-link.ts          Món danh mục hay công thức riêng thì dẫn đi đâu
+    moderation-core.ts    Luật kiểm duyệt + gọi Gemini (dùng chung với script)
+    moderation.ts         Bản bọc server-only, đọc key từ env
+    actions/post.ts       Server action: đăng bài, thích, bình luận, theo dõi
+    actions/recipe.ts     Server action: lưu / xoá công thức nhà mình
+    og.ts, image.ts       Ảnh xem trước khi chia sẻ; nén ảnh trước khi tải lên
     pantry-store.tsx      Store tủ lạnh (useSyncExternalStore + localStorage)
     types.ts              Kiểu dùng chung toàn app
 supabase/
@@ -105,6 +125,7 @@ trắng, xuống dòng ở 80 ký tự, dấu phẩy cuối. Đừng tự đặt
   giống phần còn lại của repo.
 
 <!-- nf:code-comments v1 — managed by nf-init-project -->
+
 ## Code comments
 
 **Make the code explain itself; comment only what the code cannot say.**
@@ -126,7 +147,7 @@ Before writing a comment, try in this order:
 
 Only then write the comment.
 
-### Comment the *why*, never the *what*
+### Comment the _why_, never the _what_
 
 The diff shows what changed; the code shows what it does. A comment earns its
 place when it records something not recoverable from reading the code:
@@ -187,14 +208,35 @@ kiểu đó — script `tsx` độc lập trong `scripts/test/`, thêm một dò
 `.env.local` ở gốc repo, không commit (`.gitignore` chặn `.env*` trừ `.env.example`).
 Điền theo `.env.example`:
 
-| Biến | Bắt buộc? | Dùng để |
-| --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | không | đọc danh mục từ DB; trống thì dùng `src/data` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | không | như trên |
-| `GEMINI_API_KEY` | không | nhận diện ảnh + chat; trống thì chạy bản mô phỏng |
-| `GEMINI_MODEL` | không | mặc định `gemini-3.6-flash` |
-| `SUPABASE_SERVICE_ROLE_KEY` | không | chỉ cho script chạy ở máy (seed). **Không bao giờ đưa ra client** |
-| `GEMINI_BASE_URL` | không | trỏ sang server giả khi test |
+| Biến                            | Bắt buộc? | Dùng để                                                           |
+| ------------------------------- | --------- | ----------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | không     | đọc danh mục từ DB; trống thì dùng `src/data`                     |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | không     | như trên                                                          |
+| `GEMINI_API_KEY`                | không     | nhận diện ảnh + chat; trống thì chạy bản mô phỏng                 |
+| `GEMINI_MODEL`                  | không     | mặc định `gemini-3.6-flash`                                       |
+| `SUPABASE_SERVICE_ROLE_KEY`     | không     | chỉ cho script chạy ở máy (seed). **Không bao giờ đưa ra client** |
+| `GEMINI_BASE_URL`               | không     | trỏ sang server giả khi test                                      |
+
+Đăng nhập dùng Supabase Auth: Google, Facebook, email + mật khẩu và magic link,
+gom hết trong `src/components/login-form.tsx`; mọi luồng đều quay về
+`/auth/callback`. Lỗi của Supabase là tiếng Anh, đổi sang tiếng Việt ở
+`src/lib/auth-loi.ts` — thêm luồng mới thì thêm câu ở đó, đừng hiện message thô.
+`src/middleware.ts` làm mới token mỗi
+request; Server Component không set được cookie nên bỏ middleware là phiên rụng
+giữa chừng.
+
+Middleware cũng là cửa chặn: mọi đường dẫn trong `CAN_DANG_NHAP`
+(`/cong-dong`, `/bai`, `/bep`, `/cong-thuc`, `/ho-so`, `/doi-mat-khau`) khách
+không vào được, bị đá về `/dang-nhap?next=...`. Thêm trang cộng đồng mới thì
+thêm cả vào `CAN_DANG_NHAP` lẫn `matcher`. Đường dẫn `opengraph-image` cố tình
+được miễn — Zalo/Facebook phải lấy được ảnh thẻ.
+
+Trong trang thì gọi `requireUser("/duong-dan")` (lớp thứ hai, phòng khi
+middleware sót); chỗ nào chỉ cần biết có ai đăng nhập hay không thì
+`getCurrentUser()`. Đừng tự đọc cookie.
+
+Id món và id nguyên liệu người dùng gửi lên khi đăng bài đều đối chiếu lại với
+danh mục trong `actions/post.ts` — cùng lý do như rào chắn ở `/api/chat`.
 
 Bảng của dự án nằm trong schema **`tlrm`**, không phải `public`. Tên schema khai
 ở `DB_SCHEMA` trong `src/lib/supabase/env.ts` — đừng viết thẳng vào chỗ khác.
@@ -213,7 +255,7 @@ Mọi biến mới đọc qua `src/lib/supabase/env.ts` hoặc module config tư
 - Do NOT bỏ qua `npm run typecheck` và `npm run lint` trước khi kết thúc thay đổi.
 - Do NOT thêm CI, Dockerfile, hay manifest deploy — dự án cá nhân, không deploy.
 - Do NOT narrate code bằng comment — đổi tên, tách hàm, hoặc cấu trúc lại để code
-  tự đọc được, comment để dành cho phần *tại sao*.
+  tự đọc được, comment để dành cho phần _tại sao_.
 
 ## Tham chiếu
 

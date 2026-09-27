@@ -3,7 +3,7 @@
 Web app gợi ý mâm cơm từ nguyên liệu đang có trong tủ lạnh.
 Đối tượng: mẹ đi làm văn phòng, tan làm 5h chiều, nấu cho chồng và 2 con.
 
-Bài toán giải quyết: *hôm nay ăn gì* — đủ chất, không lặp món, tận dụng đồ sẵn có,
+Bài toán giải quyết: _hôm nay ăn gì_ — đủ chất, không lặp món, tận dụng đồ sẵn có,
 và nấu xong trong khoảng 30 phút.
 
 ## Chạy dự án
@@ -35,11 +35,11 @@ File `.env.local` đã có sẵn ở gốc repo, chỉ cần điền 3 dòng. Ap
 để trống: chưa có Supabase thì đọc dữ liệu mock trong `src/data`, chưa có Gemini
 thì nhận diện ảnh chạy bản mô phỏng.
 
-| Biến | Lấy ở đâu |
-| --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | supabase.com → project → Settings → API → Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | cùng trang, mục `anon public` |
-| `GEMINI_API_KEY` | aistudio.google.com/apikey → Create API key |
+| Biến                            | Lấy ở đâu                                             |
+| ------------------------------- | ----------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | supabase.com → project → Settings → API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | cùng trang, mục `anon public`                         |
+| `GEMINI_API_KEY`                | aistudio.google.com/apikey → Create API key           |
 
 Điền xong nhớ khởi động lại `npm run dev`.
 
@@ -74,8 +74,9 @@ ai cũng đọc được nhưng chỉ `service_role` mới ghi.
 
 ```
 supabase/
-  migrations/0001_init.sql  Schema + RLS
-  seed.sql                  Dữ liệu danh mục, sinh từ src/data
+  migrations/0001_init.sql        Schema + RLS
+  migrations/0003_cong_dong.sql   Bài đăng, thích, bình luận, theo dõi, bucket ảnh
+  seed.sql                        Dữ liệu danh mục, sinh từ src/data
 scripts/
   generate-seed.ts          npm run seed:gen
   check-db.ts               npm run db:check
@@ -85,6 +86,11 @@ src/
     quet/                 Chụp/chọn ảnh tủ lạnh -> nhận diện nguyên liệu
     tu-lanh/              Toàn bộ danh mục nguyên liệu
     mon/[slug]/           Chi tiết món: nguyên liệu, các bước, dinh dưỡng
+    cong-dong/            Feed cộng đồng + trang khoe món
+    bai/[id]/             Một bài khoe món + bình luận
+    bep/[handle]/         Trang bếp của một người
+    dang-nhap/, ho-so/    Đăng nhập bằng email, sửa hồ sơ
+    auth/callback/        Đích đến của link đăng nhập trong email
     api/recognize/        API nhận diện nguyên liệu (BẢN MOCK)
   components/
     ui/                   shadcn/ui
@@ -95,7 +101,11 @@ src/
   lib/
     repo/catalog.ts       Nguồn dữ liệu: Supabase nếu có env, không thì src/data
     catalog-context.tsx   Đưa danh mục xuống các component client
-    supabase/             client (browser) + server (SSR cookie) + kiểu dữ liệu
+    supabase/             client (browser) + server (SSR cookie) + middleware + kiểu dữ liệu
+    repo/feed.ts          Đọc bài đăng, bình luận, hồ sơ bếp
+    actions/post.ts       Đăng bài, thích, bình luận, theo dõi (server action)
+    auth.ts               Người đang đăng nhập
+    og.ts                 Font + màu cho ảnh xem trước khi chia sẻ
     suggest.ts            Chấm điểm món + dựng mâm cơm (mặn + canh + rau)
     pantry-store.ts(x)    Store tủ lạnh (useSyncExternalStore + localStorage)
     types.ts
@@ -122,9 +132,33 @@ không thiếu gì, phạt theo số món phải đi mua, thời gian nấu và 
 `buildMealPlans()` ghép 1 món mặn + 1 canh + 1 rau thành mâm cơm, không lặp món
 giữa các mâm, và tính tổng thời gian theo kiểu nấu song song.
 
+## Cộng đồng
+
+Tab **Cộng đồng** là chỗ khoe mâm cơm: ảnh, tên món, nấu hết bao lâu, nguyên
+liệu đã dùng. Người khác thích, bình luận, theo dõi bếp nhà mình.
+
+- Bốn cách đăng nhập: Google, Facebook, email + mật khẩu (có đăng ký và quên mật
+  khẩu), hoặc link gửi qua email — mở mail ở máy khác thì nhập mã 6 số. Cách bật
+  từng cái: `docs/supabase-setup.md` mục 11.
+- **Cả phần cộng đồng phải đăng nhập mới xem được**, kể cả chỉ đọc. Khách bấm
+  link chia sẻ sẽ vào trang đăng nhập, xong thì rơi đúng vào bài đó. Phần nấu
+  nướng (trang chủ, tủ lạnh, quét tủ, trợ lý, chi tiết món) vẫn dùng được không
+  cần tài khoản.
+- Bài gắn được với món trong danh mục — người đọc bấm một phát là ra công thức.
+- Nút chia sẻ dùng bảng chia sẻ sẵn có của điện thoại (Zalo, Messenger, tin
+  nhắn). Máy tính thì chép link hoặc đăng thẳng lên Facebook.
+- Link bài và link món có ảnh xem trước riêng (`opengraph-image`) — đường dẫn
+  ảnh này cố tình không bị chặn đăng nhập, nếu không Zalo/Facebook đi lấy thẻ
+  chỉ thấy trang đăng nhập.
+- Ảnh được thu nhỏ ngay trên máy trước khi tải lên (cạnh dài 1600px), để mạng
+  3G vẫn đăng được.
+
+Bật phần này: chạy `supabase/migrations/0003_cong_dong.sql` và bật đăng nhập
+email — xem `docs/supabase-setup.md` mục 9.
+
 ## Việc còn lại (roadmap ngắn)
 
-1. Đăng nhập Supabase + đồng bộ tủ lạnh lên `pantry_items` (bảng đã có sẵn).
-3. Ghi `cook_logs` khi nấu xong để tránh lặp món trong tuần + kế hoạch cả tuần.
-4. Danh sách đi chợ gộp theo mâm đã chọn.
-5. Tài khoản người dùng, đồng bộ tủ lạnh nhiều thiết bị.
+1. Đồng bộ tủ lạnh lên `pantry_items` (đăng nhập đã có, chỉ còn đổi chỗ lưu).
+2. Ghi `cook_logs` khi nấu xong để tránh lặp món trong tuần + kế hoạch cả tuần.
+3. Danh sách đi chợ gộp theo mâm đã chọn.
+4. Feed phân trang (hiện lấy 20 bài mới nhất) và ảnh đại diện cho hồ sơ.

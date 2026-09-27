@@ -37,15 +37,15 @@ Supabase Dashboard → **SQL Editor** → **New query** → dán nguyên nội d
 
 File này tạo:
 
-| Thứ | Tên |
-| --- | --- |
-| Schema | `tlrm` |
-| Kiểu enum | `tlrm.ingredient_category`, `tlrm.dish_role`, `tlrm.meal_slot` |
-| Bảng danh mục | `tlrm.ingredients`, `tlrm.dishes`, `tlrm.dish_ingredients` |
-| Bảng người dùng | `tlrm.profiles`, `tlrm.pantry_items`, `tlrm.cook_logs` |
-| Trigger | tự cập nhật `updated_at`, tự tạo profile khi đăng ký |
-| Quyền | `usage` trên schema + `select`/`insert`/... theo từng nhóm bảng |
-| RLS | bật trên cả 6 bảng, kèm policy |
+| Thứ             | Tên                                                             |
+| --------------- | --------------------------------------------------------------- |
+| Schema          | `tlrm`                                                          |
+| Kiểu enum       | `tlrm.ingredient_category`, `tlrm.dish_role`, `tlrm.meal_slot`  |
+| Bảng danh mục   | `tlrm.ingredients`, `tlrm.dishes`, `tlrm.dish_ingredients`      |
+| Bảng người dùng | `tlrm.profiles`, `tlrm.pantry_items`, `tlrm.cook_logs`          |
+| Trigger         | tự cập nhật `updated_at`, tự tạo profile khi đăng ký            |
+| Quyền           | `usage` trên schema + `select`/`insert`/... theo từng nhóm bảng |
+| RLS             | bật trên cả 6 bảng, kèm policy                                  |
 
 Chạy xong nên thấy `Success. No rows returned`.
 
@@ -109,9 +109,9 @@ Sửa danh mục về sau: sửa `src/data/*.ts` → `npm run seed:gen` → ch�
 
 **Settings → API**, copy 2 giá trị vào `.env.local` ở gốc repo:
 
-| Biến | Lấy ở đâu |
-| --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | mục **Project URL** |
+| Biến                            | Lấy ở đâu                                   |
+| ------------------------------- | ------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | mục **Project URL**                         |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | mục **anon public** (dán cả chuỗi `eyJ...`) |
 
 `SUPABASE_SERVICE_ROLE_KEY` chỉ cần nếu muốn `npm run db:check` đọc được cả bảng
@@ -143,13 +143,13 @@ tải lại trang — thấy tên mới là DB đang được dùng thật.
 
 ### Gặp lỗi
 
-| Triệu chứng | Nguyên nhân |
-| --- | --- |
-| Mọi bảng báo 404 / `relation does not exist` | Chưa làm bước 3 (expose schema) |
-| `permission denied for schema tlrm` | Bước 1 chạy thiếu phần `grant` |
-| `profiles`/`pantry_items`/`cook_logs` báo lỗi, 3 bảng kia OK | Bình thường — RLS chặn khi chưa đăng nhập |
-| App vẫn hiện đúng món dù DB trống | Đang rơi về mock; xem log server `[catalog] không đọc được từ Supabase` |
-| `invalid input value for enum ... "sang"` | Chưa chạy bước 2 |
+| Triệu chứng                                                  | Nguyên nhân                                                             |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| Mọi bảng báo 404 / `relation does not exist`                 | Chưa làm bước 3 (expose schema)                                         |
+| `permission denied for schema tlrm`                          | Bước 1 chạy thiếu phần `grant`                                          |
+| `profiles`/`pantry_items`/`cook_logs` báo lỗi, 3 bảng kia OK | Bình thường — RLS chặn khi chưa đăng nhập                               |
+| App vẫn hiện đúng món dù DB trống                            | Đang rơi về mock; xem log server `[catalog] không đọc được từ Supabase` |
+| `invalid input value for enum ... "sang"`                    | Chưa chạy bước 2                                                        |
 
 App **cố tình không chết** khi Supabase lỗi — nó lùi về dữ liệu mock trong
 `src/data` và ghi log. Nên "app chạy bình thường" chưa chứng minh DB hoạt động;
@@ -236,11 +236,115 @@ từ đó.
 
 ---
 
+## 9. Cộng đồng chia sẻ món
+
+SQL Editor → query mới → dán `supabase/migrations/0003_cong_dong.sql` → **Run**.
+
+File này thêm:
+
+- `tlrm.posts`, `post_likes`, `post_comments`, `follows` — bài khoe món, thích,
+  bình luận, theo dõi. Bài đăng ai cũng đọc được (kể cả khách chưa đăng nhập),
+  chỉ chủ bài sửa/xoá được.
+- `handle`, `bio`, `avatar_url` cho `tlrm.profiles`, cộng view
+  `tlrm.public_profiles` — phần hồ sơ khách xem được, cố tình không có
+  `household_size`.
+- Bucket Storage `anh-mon` (công khai, tối đa 5MB, chỉ JPG/PNG/WEBP). Ảnh nằm
+  trong thư mục mang tên user id nên không ai ghi đè ảnh người khác.
+
+Cách bật đăng nhập: xem mục 11.
+
+Lưu ý: `storage.objects` là bảng dùng chung cả project, nên mọi policy trong
+0003 đều mang tiền tố `tlrm_` để không đè lên dự án khác trong cùng project.
+
+## 10. Công thức nhà mình + kiểm duyệt
+
+SQL Editor → query mới → dán `supabase/migrations/0004_cong_thuc_rieng.sql` → **Run**.
+
+File này thêm:
+
+- `tlrm.recipes` — công thức người dùng tự viết. `core`/`optional` là id nguyên
+  liệu trong danh mục nên máy gợi ý chấm điểm được; `extras` giữ tên nhà tự gõ,
+  chỉ để hiển thị. `is_public` bật thì ai có link cũng đọc, tắt thì RLS chỉ cho
+  chủ nhà thấy.
+- `tlrm.posts.recipe_id` — bài khoe món nấu theo công thức nhà mình thì trỏ về
+  công thức đó; `dish_id` vẫn dành cho món trong danh mục.
+
+Kiểm tra: đăng nhập → `/ho-so` → **Công thức nhà mình** → viết một món, rồi mở
+trang chủ xem nó có nằm trong gợi ý không.
+
+Nội dung đăng lên cộng đồng (bài, bình luận, công thức công khai, ảnh món) đi
+qua `src/lib/moderation.ts` trước khi lưu. Chưa có `GEMINI_API_KEY` thì chỉ còn
+lưới lọc từ cấm. Quét lại những thứ đã đăng: `npm run mod:scan` (chỉ liệt kê),
+thêm `-- --xoa` để xoá thật — cần `SUPABASE_SERVICE_ROLE_KEY`.
+
+## 11. Các cách đăng nhập
+
+Trang `/dang-nhap` có 4 đường vào: Google, Facebook, email + mật khẩu, và link
+gửi qua email (magic link). Ba thứ đầu phải bật trong Supabase mới chạy.
+
+### Chung cho mọi cách
+
+**Authentication → URL Configuration**:
+
+- **Site URL**: địa chỉ app đang chạy (`http://localhost:3000`, hoặc tên miền
+  tunnel khi mở ra ngoài).
+- **Redirect URLs**: thêm `http://localhost:3000/auth/callback`, thêm cả địa chỉ
+  LAN (`http://192.168.x.x:3000/auth/callback`) nếu test bằng điện thoại và địa
+  chỉ tunnel nếu có. Thiếu dòng nào thì link trong email và luồng Google/Facebook
+  đều rơi về sai chỗ.
+
+Mọi luồng đều quay về `/auth/callback`, chỗ đó đổi `code` lấy phiên rồi đưa tiếp
+tới `next`.
+
+### Email + mật khẩu
+
+**Authentication → Sign In / Providers → Email**: bật provider, bật **Confirm
+email**, để **Minimum password length** là 8 (form cũng chặn ở 8, để lệch thì
+người dùng nhận lỗi tiếng Anh của Supabase).
+
+Bật "Confirm email" nghĩa là đăng ký xong chưa vào được ngay — app hiện màn "đã
+gửi email xác minh". Tắt nó thì `signUp` trả về session luôn và app vào thẳng;
+code đã xử lý cả hai trường hợp.
+
+Quên mật khẩu: app gọi `resetPasswordForEmail` rồi đưa về `/doi-mat-khau`. Link
+đó tạo một phiên tạm, nên `/doi-mat-khau` chỉ cần kiểm tra "có phiên hay không".
+
+### Magic link
+
+Cùng provider Email, bật **Email OTP**. Email gửi đi có cả link lẫn mã 6 số —
+form nhận cả hai, mở email ở máy khác thì gõ mã.
+
+### Google
+
+1. Google Cloud Console → **APIs & Services → Credentials → OAuth client ID**,
+   loại **Web application**.
+2. **Authorized redirect URI**:
+   `https://bkpfuhmfcinwxmrfukdm.supabase.co/auth/v1/callback` — là địa chỉ của
+   Supabase, không phải của app.
+3. Dán Client ID + Client Secret vào **Authentication → Sign In / Providers →
+   Google** rồi bật.
+
+### Facebook
+
+1. developers.facebook.com → tạo app → thêm sản phẩm **Facebook Login**.
+2. **Valid OAuth Redirect URIs**: cũng là
+   `https://bkpfuhmfcinwxmrfukdm.supabase.co/auth/v1/callback`.
+3. Dán App ID + App Secret vào **Authentication → Sign In / Providers →
+   Facebook** rồi bật.
+
+Lúc app còn ở chế độ Development, chỉ tài khoản trong danh sách tester đăng nhập
+được. Muốn ai cũng dùng được thì phải qua App Review của Facebook.
+
+### Kiểm tra
+
+Mở `/dang-nhap`: đăng ký bằng mật khẩu → nhận mail xác minh → bấm link → đăng
+nhập lại bằng mật khẩu. Provider chưa bật thì app báo "Cách đăng nhập này chưa
+được bật trong Supabase" chứ không đứng hình.
+
 ## Chưa làm
 
-Đăng nhập chưa được nối (roadmap mục 1). Hiện tại app chỉ **đọc** danh mục từ
-Supabase; tủ lạnh, bản chỉnh món và tuỳ chọn cả nhà vẫn nằm ở `localStorage`.
+Tủ lạnh, bản chỉnh món và tuỳ chọn cả nhà vẫn nằm ở `localStorage`, chưa đồng bộ
+lên `pantry_items`. Đăng nhập đã có (0003), nên đây chỉ còn là việc đổi phần
+read/save trong `pantry-store.tsx` và `chat-store.tsx`.
 
-Ba bảng `profiles`, `pantry_items`, `cook_logs` đã dựng sẵn và bật RLS đúng, chờ
-bước nối Supabase Auth. Tới lúc đó RLS mới thực sự có việc để làm — bây giờ chưa
-ai đăng nhập nên chúng luôn rỗng.
+`cook_logs` vẫn chưa có gì ghi vào.
