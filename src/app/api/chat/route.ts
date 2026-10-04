@@ -17,6 +17,20 @@ import type { ChatRequest, ChatResponse, DishProposal } from "@/lib/chat-api";
 
 const MAX_MESSAGES = 10;
 const MAX_LEN = 2000;
+/**
+ * Route này không cần đăng nhập, và `dish` / `pantry` / `prefs` được ghép
+ * thẳng vào system prompt - không chặn cỡ thì một request là một lượt Vertex
+ * tốn tiền tuỳ ý. Bản thật từ chat-panel chỉ vài chục KB.
+ */
+const BODY_MAX_LEN = 100_000;
+
+function docJson(raw: string): ChatRequest | null {
+  try {
+    return JSON.parse(raw) as ChatRequest;
+  } catch {
+    return null;
+  }
+}
 
 function keepKnown(
   ids: unknown,
@@ -45,7 +59,12 @@ function cleanStrings(value: unknown, limit: number): string[] | undefined {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => null)) as ChatRequest | null;
+  const bodyText = await request.text().catch(() => "");
+  if (bodyText.length > BODY_MAX_LEN) {
+    return NextResponse.json({ error: "Nội dung dài quá" }, { status: 413 });
+  }
+
+  const body = docJson(bodyText);
 
   if (!body || (body.scope !== "dish" && body.scope !== "meal")) {
     return NextResponse.json({ error: "Thiếu scope" }, { status: 400 });

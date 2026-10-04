@@ -30,7 +30,14 @@ const nextConfig: NextConfig = {
   // Server Action gửi kèm Origin; qua tunnel nó khác Host nên Next từ chối
   // với "x-forwarded-host does not match origin" nếu không khai ở đây.
   experimental: {
-    serverActions: siteHost ? { allowedOrigins: [siteHost] } : undefined,
+    serverActions: {
+      ...(siteHost ? { allowedOrigins: [siteHost] } : {}),
+      // Mặc định chỉ 1MB. Ảnh món nén ở client thì lọt, nhưng máy nào không
+      // nén được (HEIC trên trình duyệt cũ) gửi nguyên ảnh lên - để vừa đủ cho
+      // ANH_MON_MAX_BYTES (5MB) cộng phần vỏ form, dangBai mới tự báo lỗi
+      // tiếng Việt thay vì Next chặn cứng.
+      bodySizeLimit: "6mb",
+    },
   },
 
   // Cho phép mở dev server từ điện thoại/iPad cùng wifi (npm run dev:lan) và

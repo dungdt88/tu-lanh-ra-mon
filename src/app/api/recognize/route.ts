@@ -36,6 +36,13 @@ const MOCK_POOL = [
   "ca-basa",
 ];
 
+/**
+ * Route không cần đăng nhập, mỗi ảnh là một lượt Vertex: chặn cỡ để không ai
+ * đẩy file to tuỳ ý. Ảnh điện thoại chưa nén hiếm khi quá 10MB, mà
+ * scan-uploader đã nén trước khi gửi.
+ */
+const ANH_MAX_BYTES = 10 * 1024 * 1024;
+
 function pseudoRandom(seed: number) {
   let value = seed % 2147483647;
   if (value <= 0) value += 2147483646;
@@ -51,6 +58,10 @@ export async function POST(request: Request) {
 
   const form = await request.formData().catch(() => null);
   const file = form?.get("image");
+
+  if (file instanceof File && file.size > ANH_MAX_BYTES) {
+    return NextResponse.json({ error: "Ảnh nặng quá" }, { status: 413 });
+  }
 
   // ---------------------------------------------------------------- Gemini
   if (hasGemini && file instanceof File) {

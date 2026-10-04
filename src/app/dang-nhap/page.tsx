@@ -4,6 +4,7 @@ import { LoginForm } from "@/components/login-form";
 import { getCurrentUser } from "@/lib/auth";
 import { layProviderDangBat } from "@/lib/auth-settings";
 import { NHA_CUNG_CAP } from "@/lib/oauth-providers";
+import { safeNext } from "@/lib/safe-next";
 
 const LOI: Record<string, string> = {
   "het-han":
@@ -19,8 +20,7 @@ export default async function LoginPage({
   searchParams,
 }: PageProps<"/dang-nhap">) {
   const { next, loi } = await searchParams;
-  const target =
-    typeof next === "string" && next.startsWith("/") ? next : "/cong-dong";
+  const target = safeNext(next);
 
   const user = await getCurrentUser();
   if (user) redirect(target);

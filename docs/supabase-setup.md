@@ -361,6 +361,24 @@ Mở `/dang-nhap`: đăng ký bằng mật khẩu → nhận mail xác minh → 
 nhập lại bằng mật khẩu. Provider chưa bật thì app báo "Cách đăng nhập này chưa
 được bật trong Supabase" chứ không đứng hình.
 
+## 12. Siết quyền qua API
+
+SQL Editor → query mới → dán `supabase/migrations/0005_siet_quyen.sql` → **Run**.
+
+Ai đăng nhập rồi cũng gọi thẳng được PostgREST bằng anon key + token của mình,
+không cần đi qua server action. File này chặn ở database:
+
+- `tlrm.profiles` thôi mở cho mọi người đọc. Hồ sơ người khác chỉ xem qua view
+  `tlrm.public_profiles` (giờ chạy bằng quyền chủ view), nên `household_size`
+  hết lộ. Sau bước này `npm run db:check` với anon key báo `profiles` bị chặn
+  là đúng.
+- Bỏ quyền sửa bài đăng (app không có chức năng sửa bài), và chỉ cho ghi đúng
+  các cột `dangBai` ghi - không ai tự đặt `like_count` / `comment_count`.
+
+Còn hở: bài, bình luận và công thức ghi thẳng qua API vẫn không qua kiểm duyệt
+và không đối chiếu id. Chặn hẳn thì phải chuyển việc ghi sang server bằng
+service role; tạm thời `npm run mod:scan` quét lại nhặt nốt.
+
 ## Chưa làm
 
 Tủ lạnh, bản chỉnh món và tuỳ chọn cả nhà vẫn nằm ở `localStorage`, chưa đồng bộ

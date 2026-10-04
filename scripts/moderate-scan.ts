@@ -11,6 +11,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { DB_SCHEMA } from "@/lib/supabase/env";
 import { coVertex } from "@/lib/vertex";
+import { laTuDo, tenTuDo } from "@/lib/ingredient-id";
 import { ANH_MON_BUCKET } from "@/lib/storage";
 import {
   kiemDuyetAnhVoi,
@@ -78,7 +79,7 @@ async function anhBase64(path: string): Promise<string | null> {
 async function quetBai() {
   const { data, error } = await supabase
     .from("posts")
-    .select("id, dish_name, caption, image_path")
+    .select("id, dish_name, caption, image_path, ingredient_ids")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -91,7 +92,11 @@ async function quetBai() {
     const duyet = await kiemDuyetVanBanVoi(
       cauHinh,
       "bai",
-      `${post.dish_name}\n${post.caption}`,
+      [
+        post.dish_name,
+        post.caption,
+        ...post.ingredient_ids.filter(laTuDo).map(tenTuDo),
+      ].join("\n"),
     );
 
     if (!duyet.ok) {
@@ -160,7 +165,7 @@ async function quetBinhLuan() {
 async function quetCongThuc() {
   const { data, error } = await supabase
     .from("recipes")
-    .select("id, name, summary, steps, tip")
+    .select("id, emoji, name, summary, extras, steps, tip")
     .eq("is_public", true);
 
   if (error) {
@@ -173,9 +178,14 @@ async function quetCongThuc() {
     const duyet = await kiemDuyetVanBanVoi(
       cauHinh,
       "cong-thuc",
-      [recipe.name, recipe.summary, ...recipe.steps, recipe.tip ?? ""].join(
-        "\n",
-      ),
+      [
+        recipe.emoji,
+        recipe.name,
+        recipe.summary,
+        ...recipe.extras,
+        ...recipe.steps,
+        recipe.tip ?? "",
+      ].join("\n"),
     );
     bao(duyet.ok, nhan, duyet.lyDo);
     if (!duyet.ok) {

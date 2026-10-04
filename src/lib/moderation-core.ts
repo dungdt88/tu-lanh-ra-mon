@@ -13,6 +13,12 @@ export type KetQuaKiemDuyet = { ok: boolean; lyDo?: string };
 
 const HOP_LE: KetQuaKiemDuyet = { ok: true };
 
+/**
+ * Phần chữ dài nhất gửi Gemini. Phải lớn hơn công thức dài nhất mà
+ * `actions/recipe.ts` cho lưu, nếu không phần đuôi sẽ lọt qua không ai đọc.
+ */
+const KIEM_DUYET_MAX_LEN = 12000;
+
 const NHAN: Record<LoaiNoiDung, string> = {
   bai: "một bài khoe mâm cơm",
   "binh-luan": "một bình luận dưới bài khoe món",
@@ -23,27 +29,55 @@ const NHAN: Record<LoaiNoiDung, string> = {
  * Lưới lọc chạy khi chưa cấu hình Vertex, và chạy trước cả khi có: bắt được
  * ngay thì khỏi tốn một lượt gọi mạng. Cố tình chỉ gồm từ thô tục rõ ràng -
  * lọc rộng hơn sẽ chặn nhầm người kể chuyện bếp núc.
+ *
+ * Viết CÓ DẤU: bỏ dấu đi thì "đồ chó" trùng "đồ cho bé", "ma túy" trùng
+ * "mà tùy nhà". Cùng một chữ có hai cách bỏ dấu thanh (túy / tuý) thì ghi cả hai.
  */
 const TU_CAM = [
-  "dit me",
-  "du ma",
-  "do cho",
-  "con cho",
-  "thang cho",
-  "cai lon",
+  "địt mẹ",
+  "đụ má",
+  "đồ chó",
+  "con chó",
+  "thằng chó",
+  "cái lồn",
   "con dine",
   "phim sex",
-  "khieu dam",
-  "ma tuy",
-  "danh bac",
-  "ca do bong da",
-  "vay tien nhanh",
-  "kiem tien tai nha",
-];
+  "khiêu dâm",
+  "ma túy",
+  "ma tuý",
+  "đánh bạc",
+  "cá độ bóng đá",
+  "vay tiền nhanh",
+  "kiếm tiền tại nhà",
+].map((cum) => {
+  const coDau = tachTu(cum);
+  return { coDau, khongDau: coDau.map(normalizeText) };
+});
+
+function tachTu(text: string): string[] {
+  return text
+    .normalize("NFC")
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean);
+}
+
+/**
+ * Chữ người dùng gõ có dấu thì phải khớp đúng dấu; cả cụm gõ không dấu thì
+ * so với bản bỏ dấu - viết không dấu vốn mơ hồ, chấp nhận chặn nhầm đôi chút.
+ */
+function khopTai(tu: string[], i: number, cum: (typeof TU_CAM)[number]) {
+  const doan = tu.slice(i, i + cum.coDau.length);
+  if (doan.length < cum.coDau.length) return false;
+  if (doan.every((chu, k) => chu === cum.coDau[k])) return true;
+  return doan.every(
+    (chu, k) => chu === normalizeText(chu) && chu === cum.khongDau[k],
+  );
+}
 
 function loiVanBan(text: string): string | null {
-  const sach = normalizeText(text);
-  const hit = TU_CAM.find((tu) => sach.includes(tu));
+  const tu = tachTu(text);
+  const hit = TU_CAM.some((cum) => tu.some((_, i) => khopTai(tu, i, cum)));
   return hit ? "Nội dung có từ ngữ không phù hợp." : null;
 }
 
@@ -125,7 +159,7 @@ export async function kiemDuyetVanBanVoi(
           LUAT,
           "",
           "Nội dung:",
-          noiDung.slice(0, 4000),
+          noiDung.slice(0, KIEM_DUYET_MAX_LEN),
         ].join("\n"),
       },
     ]);

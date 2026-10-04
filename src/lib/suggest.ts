@@ -29,7 +29,10 @@ export function matchDish(
   const have = dish.core.filter((id) => available(id, pantry, staples));
   const missing = dish.core.filter((id) => !available(id, pantry, staples));
   const bonus = dish.optional.filter((id) => pantry.has(id));
-  const coverage = dish.core.length === 0 ? 1 : have.length / dish.core.length;
+  // Công thức nhà mình chỉ gồm nguyên liệu tự gõ thì core rỗng: không đối
+  // chiếu được gì với tủ lạnh, nên không được tính là khớp hết rồi đứng đầu mâm.
+  const doiChieuDuoc = dish.core.length > 0;
+  const coverage = doiChieuDuoc ? have.length / dish.core.length : 0;
 
   // Nguyên liệu người dùng thực sự bỏ vào tủ (gia vị mặc định không tính)
   const fromFridge = dish.core.filter((id) => pantry.has(id));
@@ -38,7 +41,7 @@ export function matchDish(
   const score =
     coverage * 100 +
     fromFridge.length * 12 +
-    (missing.length === 0 ? 25 : 0) +
+    (doiChieuDuoc && missing.length === 0 ? 25 : 0) +
     bonus.length * 4 -
     missing.length * 18 -
     dish.minutes * 0.4 -

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { safeNext } from "@/lib/safe-next";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -38,12 +39,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.redirect(`${origin}${next}`);
-}
-
-/** Chỉ cho quay về đường dẫn nội bộ, tránh bị lợi dụng làm trạm chuyển hướng. */
-function safeNext(value: string | null): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/cong-dong";
-  }
-  return value;
 }

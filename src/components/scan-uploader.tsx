@@ -18,6 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { AddIngredient } from "@/components/add-ingredient";
+import { nenAnh } from "@/lib/image";
 import { usePantry } from "@/lib/pantry-store";
 import { useMounted } from "@/lib/use-mounted";
 import { cn } from "@/lib/utils";
@@ -67,6 +68,9 @@ export function ScanUploader({ onDone, compact, resetAfterDone }: Props) {
   const [picked, setPicked] = React.useState<Set<string>>(new Set());
   const [error, setError] = React.useState<string | null>(null);
   const [daThem, setDaThem] = React.useState<number | null>(null);
+  // Chỉ lượt quét mới nhất được ghi kết quả: chọn ảnh khác hay bấm Huỷ giữa
+  // chừng mà lượt cũ về sau thì nó đè lên ảnh đang xem.
+  const luotQuetRef = React.useRef<AbortController | null>(null);
 
   React.useEffect(() => {
     return () => {
@@ -81,20 +85,29 @@ export function ScanUploader({ onDone, compact, resetAfterDone }: Props) {
     setDaThem(null);
     setLoading(true);
 
-    const body = new FormData();
-    body.append("image", file);
+    luotQuetRef.current?.abort();
+    const luot = new AbortController();
+    luotQuetRef.current = luot;
 
     try {
-      const res = await fetch("/api/recognize", { method: "POST", body });
+      const body = new FormData();
+      body.append("image", await nenAnh(file));
+
+      const res = await fetch("/api/recognize", {
+        method: "POST",
+        body,
+        signal: luot.signal,
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as RecognizeResponse;
       setSource(data.source);
       setDetected(data.detected);
       setPicked(new Set(data.detected.map((d) => d.id)));
     } catch {
+      if (luot.signal.aborted) return;
       setError("Không nhận diện được ảnh. Kiểm tra mạng rồi thử lại nhé.");
     } finally {
-      setLoading(false);
+      if (luotQuetRef.current === luot) setLoading(false);
     }
   }
 
@@ -112,6 +125,8 @@ export function ScanUploader({ onDone, compact, resetAfterDone }: Props) {
   }
 
   function huy() {
+    luotQuetRef.current?.abort();
+    luotQuetRef.current = null;
     setPreview(null);
     setDetected(null);
     setError(null);

@@ -59,6 +59,26 @@ async function main() {
     "từ cấm viết có dấu vẫn chặn",
     !(await kiemDuyetVanBanVoi(OFFLINE, "binh-luan", "địt mẹ nấu dở")).ok,
   );
+  for (const cauBinhThuong of [
+    "Nấu đồ cho bé ăn dặm",
+    "Thế là đủ mà, khỏi nêm thêm",
+    "Rau thơm mà tùy nhà, thích gì bỏ nấy",
+    "Chọn cái lớn hơn cho dễ lọc xương",
+    "Mỗi tháng cho con ăn cá ba lần",
+  ]) {
+    check(
+      `không chặn nhầm: "${cauBinhThuong}"`,
+      (await kiemDuyetVanBanVoi(OFFLINE, "bai", cauBinhThuong)).ok,
+    );
+  }
+  check(
+    "viết không dấu xen câu có dấu vẫn chặn",
+    !(await kiemDuyetVanBanVoi(OFFLINE, "binh-luan", "dit me, nấu dở")).ok,
+  );
+  check(
+    "dấu thanh đặt kiểu cũ vẫn chặn",
+    !(await kiemDuyetVanBanVoi(OFFLINE, "bai", "Bán ma tuý giá rẻ")).ok,
+  );
   check(
     "mời vay tiền thì chặn",
     !(await kiemDuyetVanBanVoi(OFFLINE, "bai", "Vay tien nhanh 0% lai suat"))

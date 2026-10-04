@@ -74,9 +74,6 @@ export async function dangBai(
   const caption = String(formData.get("caption") ?? "").trim();
   if (caption.length > 2000) return { error: "Lời kể dài quá." };
 
-  const duyet = await kiemDuyetVanBan("bai", `${dishName}\n${caption}`);
-  if (!duyet.ok) return { error: duyet.lyDo ?? "Nội dung không phù hợp." };
-
   const minutesRaw = String(formData.get("minutes") ?? "").trim();
   const minutes = minutesRaw ? Number(minutesRaw) : null;
   if (
@@ -95,7 +92,7 @@ export async function dangBai(
   // Nguyên liệu nhà mình tự gõ: không có id để đối chiếu nên chỉ dọn khoảng
   // trắng, cắt độ dài và gắn tiền tố cho khỏi lẫn với id danh mục.
   const daCo = new Set<string>();
-  const tuDo = formData
+  const tenTuDo = formData
     .getAll("ingredientNames")
     .map((value) => capitalize(String(value)).slice(0, TU_DO_MAX_LEN).trim())
     .filter((name) => {
@@ -105,12 +102,17 @@ export async function dangBai(
       daCo.add(key);
       return true;
     })
-    .map(danhDauTuDo);
+    .slice(0, 30);
 
-  const ingredientIds = Array.from(new Set([...tuDanhMuc, ...tuDo])).slice(
-    0,
-    30,
+  const duyet = await kiemDuyetVanBan(
+    "bai",
+    [dishName, caption, ...tenTuDo].join("\n"),
   );
+  if (!duyet.ok) return { error: duyet.lyDo ?? "Nội dung không phù hợp." };
+
+  const ingredientIds = Array.from(
+    new Set([...tuDanhMuc, ...tenTuDo.map(danhDauTuDo)]),
+  ).slice(0, 30);
 
   const anh = formData.get("anh");
   let imagePath: string | null = null;

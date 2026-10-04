@@ -16,6 +16,9 @@ const ROLES: Dish["role"][] = ["man", "canh", "rau", "com"];
 const EXTRA_MAX_LEN = 40;
 const MAX_NGUYEN_LIEU = 30;
 const MAX_BUOC = 30;
+const BUOC_MAX_LEN = 300;
+/** Bằng maxLength của ô biểu tượng trong form. */
+const EMOJI_MAX_LEN = 4;
 
 /** Giữ lại những id có thật trong danh mục - cùng rào chắn như khi đăng bài. */
 function locIdDanhMuc(values: FormDataEntryValue[], known: Set<string>) {
@@ -125,9 +128,15 @@ export async function luuCongThuc(
     return { error: "Thêm ít nhất một nguyên liệu chính." };
   }
 
+  const steps = tachBuoc(String(formData.get("steps") ?? ""));
+  const buocDai = steps.findIndex((buoc) => buoc.length > BUOC_MAX_LEN);
+  if (buocDai >= 0) return { error: `Bước ${buocDai + 1} dài quá.` };
+
+  const emoji = String(formData.get("emoji") ?? "").trim();
+
   const ban = {
     name,
-    emoji: String(formData.get("emoji") ?? "").trim() || "🍲",
+    emoji: emoji && emoji.length <= EMOJI_MAX_LEN ? emoji : "🍲",
     summary,
     role,
     slots: slots.length > 0 ? slots : (["trua", "toi"] as MealSlot[]),
@@ -137,7 +146,7 @@ export async function luuCongThuc(
     core,
     optional,
     extras,
-    steps: tachBuoc(String(formData.get("steps") ?? "")),
+    steps,
     tip: tip || null,
     is_public: formData.get("isPublic") === "on",
   };
@@ -146,7 +155,14 @@ export async function luuCongThuc(
   if (ban.is_public) {
     const duyet = await kiemDuyetVanBan(
       "cong-thuc",
-      [ban.name, ban.summary, ...ban.steps, ban.tip ?? ""].join("\n"),
+      [
+        ban.emoji,
+        ban.name,
+        ban.summary,
+        ...ban.extras,
+        ...ban.steps,
+        ban.tip ?? "",
+      ].join("\n"),
     );
     if (!duyet.ok) return { error: duyet.lyDo ?? "Nội dung không phù hợp." };
   }
