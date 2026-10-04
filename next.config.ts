@@ -13,6 +13,9 @@ const siteHost = process.env.NEXT_PUBLIC_SITE_URL
   : undefined;
 
 const nextConfig: NextConfig = {
+  // Dockerfile chỉ chép .next/standalone vào image chạy, không mang node_modules.
+  output: "standalone",
+
   // Ảnh món ăn nằm trong Supabase Storage. Host lấy từ env chứ không ghi cứng:
   // mỗi project Supabase là một tên miền khác.
   images: supabaseHost

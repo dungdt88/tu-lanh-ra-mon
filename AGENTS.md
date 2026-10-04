@@ -9,14 +9,34 @@ Next.js 16 (App Router) + TypeScript, chạy SSR kèm vài route API. Dữ liệ
 tủ lạnh và trợ lý chat gọi Gemini, cũng có bản mô phỏng khi thiếu key — nên app
 luôn chạy được với `.env.local` để trống.
 
-Đây là **dự án cá nhân**: không có remote, không CI, không môi trường staging /
-production. Đừng thêm hạ tầng mà repo không dùng.
+Đây là **dự án cá nhân**: một remote (`github.com/dungdt88/tu-lanh-ra-mon`,
+công khai), một môi trường production duy nhất, không staging. Đừng thêm hạ
+tầng mà repo không dùng.
 
 ## Branching
 
-Làm một mình, code vào thẳng `master`. Không có remote, không có nhánh `release`,
-không có môi trường staging / production. Chỉ tách nhánh ngắn hạn khi muốn xem lại
-một thay đổi riêng, xong thì fast-forward vào `master`.
+Làm một mình, code vào thẳng `master`. **Push lên `master` là deploy** — xem
+mục Deploy. Không có nhánh `release`, không có staging. Chỉ tách nhánh ngắn hạn
+khi muốn xem lại một thay đổi riêng, xong thì fast-forward vào `master`.
+
+## Deploy
+
+Chạy chung máy Lightsail với Mika CMS (Singapore, `18.136.67.209`), theo
+`docs/deployment-standard.md` trong repo `mika-cms-webapp` — đó là bản gốc,
+đọc trước khi đổi gì ở phần này.
+
+- `.github/workflows/deploy.yml`: build image → GHCR (tag theo commit SHA) →
+  SSH vào máy → `docker run` trên `127.0.0.1:3001`. Caddy lo TLS.
+- Cổng **3001**, `--memory=512m`, `--cpus=0.5`. Đo ngày 04/10: `anon` lúc
+  rảnh ~92 MiB, đỉnh ~254 MiB khi 10 request song song có sinh ảnh OG.
+- `NEXT_PUBLIC_*` nhúng lúc build nên là **build arg** (biến repo), không phải
+  biến lúc chạy. Đổi chúng thì phải build lại.
+- Vertex chỉ bật khi có file khoá `/home/ubuntu/tu-lanh-ra-mon/gcp-key.json`
+  trên máy; không có thì app chạy bản mô phỏng.
+- Máy dùng chung: **không** `docker image prune` khi chưa lọc theo nhãn repo,
+  **không** publish cổng ra `0.0.0.0`, health check gọi `127.0.0.1`.
+- `SUPABASE_SERVICE_ROLE_KEY` không bao giờ lên máy deploy — app chạy không
+  cần nó.
 
 ## Lệnh hay dùng
 
@@ -271,7 +291,7 @@ Mọi biến mới đọc qua `src/lib/supabase/env.ts` hoặc module config tư
 - Do NOT sửa tay file trong `src/components/ui/` — chúng do shadcn CLI sinh ra.
 - Do NOT sửa `supabase/seed.sql` trực tiếp — sửa `src/data` rồi `npm run seed:gen`.
 - Do NOT bỏ qua `npm run typecheck` và `npm run lint` trước khi kết thúc thay đổi.
-- Do NOT thêm CI, Dockerfile, hay manifest deploy — dự án cá nhân, không deploy.
+- Do NOT thêm CI hay hạ tầng deploy ngoài `deploy.yml` + `Dockerfile` đang có.
 - Do NOT narrate code bằng comment — đổi tên, tách hàm, hoặc cấu trúc lại để code
   tự đọc được, comment để dành cho phần _tại sao_.
 

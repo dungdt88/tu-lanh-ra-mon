@@ -1,0 +1,99 @@
+# Theo docs/deployment-standard.md của mika-cms-webapp (máy Lightsail dùng chung).
+
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=,format=long
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          # These labels are what makes the scoped prune below safe. Do not drop them.
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+            NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.DEPLOY_HOST }}
+          username: ${{ vars.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+            # Vertex chỉ bật khi đã đặt khoá service account lên máy. Không có
+            # khoá thì app chạy bản mô phỏng, như khi .env.local để trống.
+            VERTEX_KEY=/home/ubuntu/tu-lanh-ra-mon/gcp-key.json
+            VERTEX_FLAGS=""
+            if [ -f "$VERTEX_KEY" ]; then
+              VERTEX_FLAGS="-v $VERTEX_KEY:/run/secrets/gcp-key.json:ro \
+                -e GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcp-key.json \
+                -e GOOGLE_CLOUD_PROJECT=${{ vars.GOOGLE_CLOUD_PROJECT }} \
+                -e GOOGLE_CLOUD_LOCATION=${{ vars.GOOGLE_CLOUD_LOCATION }} \
+                -e GEMINI_MODEL=${{ vars.GEMINI_MODEL }}"
+            fi
+
+            docker stop tu-lanh-ra-mon || true
+            docker rm tu-lanh-ra-mon || true
+
+            # 127.0.0.1 only — Docker's port rules bypass the host firewall, so
+            # publishing on all interfaces would serve this app over plain HTTP.
+            # The caps keep one app from starving its neighbours on a shared box.
+            docker run -d \
+              --name tu-lanh-ra-mon \
+              --restart unless-stopped \
+              -p 127.0.0.1:3001:3000 \
+              --memory=512m --memory-swap=512m \
+              --cpus=0.5 \
+              --log-opt max-size=10m --log-opt max-file=3 \
+              -e NODE_OPTIONS=--max-old-space-size=384 \
+              $VERTEX_FLAGS \
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+            # Prune only THIS project's old images. An unscoped `prune -af` would
+            # delete other projects' rollback targets from the shared host.
+            docker image prune -af \
+              --filter "until=168h" \
+              --filter "label=org.opencontainers.image.source=https://github.com/${{ github.repository }}"
