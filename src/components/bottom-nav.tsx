@@ -11,17 +11,24 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePantry } from "@/lib/pantry-store";
-import { CONG_DONG_BAT } from "@/lib/tinh-nang";
+import { CONG_DONG_BAT, TRO_LY_BAT } from "@/lib/tinh-nang";
 
 const ITEMS = [
   { href: "/", label: "Hôm nay", icon: UtensilsCrossed },
   { href: "/quet", label: "Quét tủ", icon: Camera },
   { href: "/tu-lanh", label: "Tủ lạnh", icon: Refrigerator },
-  { href: "/tro-ly", label: "Trợ lý", icon: Sparkles },
+  ...(TRO_LY_BAT ? [{ href: "/tro-ly", label: "Trợ lý", icon: Sparkles }] : []),
   ...(CONG_DONG_BAT
     ? [{ href: "/cong-dong", label: "Cộng đồng", icon: Users }]
     : []),
 ];
+
+/** Tailwind chỉ sinh class viết nguyên chữ trong mã, không ghép chuỗi được. */
+const COT_LUOI: Record<number, string> = {
+  3: "grid-cols-3",
+  4: "grid-cols-4",
+  5: "grid-cols-5",
+};
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -32,7 +39,7 @@ export function BottomNav() {
       className="bg-background/95 fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-lg border-t backdrop-blur md:max-w-2xl md:border-x"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <ul className={cn("grid", CONG_DONG_BAT ? "grid-cols-5" : "grid-cols-4")}>
+      <ul className={cn("grid", COT_LUOI[ITEMS.length])}>
         {ITEMS.map(({ href, label, icon: Icon }) => {
           const active =
             href === "/" ? pathname === "/" : pathname.startsWith(href);

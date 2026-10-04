@@ -264,6 +264,11 @@ middleware đưa mọi đường dẫn cộng đồng + tài khoản về trang 
 trong Supabase giữ nguyên. Bật lại: đổi thành `true` rồi push. Phần dưới mô tả
 lúc nó bật.
 
+**Trợ lý cũng đang tắt** (`TRO_LY_BAT = false`, cùng file): `/tro-ly` về trang
+chủ, `/api/chat` trả 404 ngay ở middleware (route và `npm run test:chat` giữ
+nguyên), khung chat ở trang món ẩn. Món đã chỉnh và danh sách tránh đã lưu
+trong máy người dùng vẫn được áp dụng.
+
 Middleware cũng là cửa chặn: mọi đường dẫn trong `CAN_DANG_NHAP`
 (`/cong-dong`, `/bai`, `/bep`, `/cong-thuc`, `/ho-so`, `/doi-mat-khau`) khách
 không vào được, bị đá về `/dang-nhap?next=...`. Thêm trang cộng đồng mới thì

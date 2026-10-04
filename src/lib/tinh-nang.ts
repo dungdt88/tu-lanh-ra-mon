@@ -8,8 +8,16 @@
  */
 export const CONG_DONG_BAT = false;
 
-/** Đường dẫn bị đưa về trang chủ khi CONG_DONG_BAT tắt. */
-export const DUONG_DAN_CONG_DONG = [
+/**
+ * Trợ lý chat: trang /tro-ly, khung chat sửa món ở trang món, và /api/chat.
+ *
+ * Những gì trợ lý đã lưu trong máy người dùng (món đã chỉnh, nguyên liệu cả
+ * nhà tránh) vẫn được áp dụng khi tắt: danh sách tránh có thể là dị ứng, bỏ
+ * qua nó thì gợi ý lại món người ta không ăn được.
+ */
+export const TRO_LY_BAT = false;
+
+const DUONG_DAN_CONG_DONG = [
   "/cong-dong",
   "/bai",
   "/bep",
@@ -19,8 +27,16 @@ export const DUONG_DAN_CONG_DONG = [
   "/dang-nhap",
 ];
 
-export function laDuongDanCongDong(pathname: string): boolean {
-  return DUONG_DAN_CONG_DONG.some(
+const DUONG_DAN_TRO_LY = ["/tro-ly", "/api/chat"];
+
+const DUONG_DAN_DANG_TAT = [
+  ...(CONG_DONG_BAT ? [] : DUONG_DAN_CONG_DONG),
+  ...(TRO_LY_BAT ? [] : DUONG_DAN_TRO_LY),
+];
+
+/** Đường dẫn thuộc một tính năng đang tắt. */
+export function laDuongDanDangTat(pathname: string): boolean {
+  return DUONG_DAN_DANG_TAT.some(
     (goc) => pathname === goc || pathname.startsWith(`${goc}/`),
   );
 }

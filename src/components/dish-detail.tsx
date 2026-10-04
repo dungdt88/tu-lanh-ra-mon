@@ -11,6 +11,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { ROLE_LABEL } from "@/data/dishes";
 import { DishChat } from "@/components/dish-chat";
 import { useChatStore } from "@/lib/chat-store";
+import { TRO_LY_BAT } from "@/lib/tinh-nang";
 import { applyOverride } from "@/lib/dish-override";
 import { useCatalog } from "@/lib/catalog-context";
 import { usePantry } from "@/lib/pantry-store";
@@ -107,7 +108,7 @@ export function DishDetail({ dish: baseDish }: { dish: Dish }) {
           </div>
         )}
 
-        <DishChat dish={dish} />
+        {TRO_LY_BAT && <DishChat dish={dish} />}
 
         <Card>
           <CardContent className="space-y-3">

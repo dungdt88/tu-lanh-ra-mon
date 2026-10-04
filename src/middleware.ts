@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 import { hasSupabase } from "@/lib/supabase/env";
-import { CONG_DONG_BAT, laDuongDanCongDong } from "@/lib/tinh-nang";
+import { laDuongDanDangTat } from "@/lib/tinh-nang";
 
 /** Phần cộng đồng: phải đăng nhập mới xem được, kể cả chỉ đọc. */
 const CAN_DANG_NHAP = [
@@ -26,7 +26,14 @@ function chanKhach(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
   const { response, user } = await updateSession(request);
 
-  if (!CONG_DONG_BAT && laDuongDanCongDong(request.nextUrl.pathname)) {
+  if (laDuongDanDangTat(request.nextUrl.pathname)) {
+    // API không chuyển hướng được: POST theo 307 sang trang chủ vô nghĩa.
+    if (request.nextUrl.pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: "Tính năng đang tạm tắt" },
+        { status: 404 },
+      );
+    }
     return chuyenVe(request, response, "/");
   }
 
