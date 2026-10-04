@@ -368,12 +368,15 @@ SQL Editor → query mới → dán `supabase/migrations/0005_siet_quyen.sql` �
 Ai đăng nhập rồi cũng gọi thẳng được PostgREST bằng anon key + token của mình,
 không cần đi qua server action. File này chặn ở database:
 
-- `tlrm.profiles` thôi mở cho mọi người đọc. Hồ sơ người khác chỉ xem qua view
-  `tlrm.public_profiles` (giờ chạy bằng quyền chủ view), nên `household_size`
-  hết lộ. Sau bước này `npm run db:check` với anon key báo `profiles` bị chặn
-  là đúng.
 - Bỏ quyền sửa bài đăng (app không có chức năng sửa bài), và chỉ cho ghi đúng
   các cột `dangBai` ghi - không ai tự đặt `like_count` / `comment_count`.
+
+Chạy tiếp `supabase/migrations/0006_ho_so_theo_cot.sql` ngay sau đó. 0005 làm
+view `public_profiles` trả về rỗng (bài đăng mất tên người đăng); 0006 sửa lại
+bằng quyền theo cột: ai cũng đọc được `handle`, `display_name`, `bio`,
+`avatar_url`, còn `household_size` thì không ai đọc được qua API. Sau bước này
+`npm run db:check` với anon key báo `profiles` bị chặn là đúng (nó hỏi
+`select *`).
 
 Còn hở: bài, bình luận và công thức ghi thẳng qua API vẫn không qua kiểm duyệt
 và không đối chiếu id. Chặn hẳn thì phải chuyển việc ghi sang server bằng
