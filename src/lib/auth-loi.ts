@@ -23,6 +23,9 @@ export function thongBaoLoi(message: string): string {
   if (m.includes("rate limit") || m.includes("too many requests")) {
     return "Gửi hơi nhiều lần rồi, đợi một lát rồi thử lại.";
   }
+  if (m.includes("signups not allowed") || m.includes("signup is disabled")) {
+    return "Trang đang tạm không nhận tài khoản mới.";
+  }
   if (m.includes("provider is not enabled")) {
     return "Cách đăng nhập này chưa được bật trong Supabase.";
   }

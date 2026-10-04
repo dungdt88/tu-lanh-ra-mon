@@ -279,8 +279,8 @@ thêm `-- --xoa` để xoá thật — cần `SUPABASE_SERVICE_ROLE_KEY`.
 
 ## 11. Các cách đăng nhập
 
-Trang `/dang-nhap` có 4 đường vào: Google, Facebook, email + mật khẩu, và link
-gửi qua email (magic link). Ba thứ đầu phải bật trong Supabase mới chạy.
+Trang `/dang-nhap` có 5 đường vào: Google, Facebook, X, email + mật khẩu, và
+link gửi qua email (magic link). Tất cả đều phải bật trong Supabase mới chạy.
 
 ### Chung cho mọi cách
 
@@ -334,6 +334,26 @@ form nhận cả hai, mở email ở máy khác thì gõ mã.
 
 Lúc app còn ở chế độ Development, chỉ tài khoản trong danh sách tester đăng nhập
 được. Muốn ai cũng dùng được thì phải qua App Review của Facebook.
+
+### X
+
+1. developer.x.com → tạo project + app.
+2. **User authentication settings**: bật **Request email from users**, chọn loại
+   **Web App**, điền callback
+   `https://bkpfuhmfcinwxmrfukdm.supabase.co/auth/v1/callback` cùng website URL,
+   terms of service URL và privacy policy URL (X bắt buộc có đủ).
+3. **Keys and tokens** → lấy **Client ID** và **Client Secret** (OAuth 2.0, không
+   phải API key), dán vào **Authentication → Sign In / Providers → X** rồi bật.
+
+Trong code dùng provider `x` (OAuth 2.0). `twitter` trong supabase-js là bản
+OAuth 1.0a cũ — đừng dùng nhầm.
+
+### Instagram: không làm
+
+Supabase không có provider Instagram (yêu cầu mở từ 04/2025, chưa có ai của
+Supabase trả lời). Làm được thì phải qua Custom OAuth provider, mà Instagram
+Login không trả về email nên tài khoản tạo ra sẽ rỗng email, cộng thêm App
+Review của Meta. Đã chốt bỏ: ai dùng Instagram thì đăng nhập bằng Facebook.
 
 ### Kiểm tra
 

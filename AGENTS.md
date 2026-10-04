@@ -209,16 +209,16 @@ kiểu đó — script `tsx` độc lập trong `scripts/test/`, thêm một dò
 `.env.local` ở gốc repo, không commit (`.gitignore` chặn `.env*` trừ `.env.example`).
 Điền theo `.env.example`:
 
-| Biến                            | Bắt buộc? | Dùng để                                                           |
-| ------------------------------- | --------- | ----------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | không     | đọc danh mục từ DB; trống thì dùng `src/data`                     |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | không     | như trên                                                          |
-| `GOOGLE_CLOUD_PROJECT`          | không     | Vertex AI cho nhận diện ảnh + chat + kiểm duyệt; trống thì mô phỏng |
-| `GOOGLE_APPLICATION_CREDENTIALS`| không     | đường dẫn khoá service account. **BÍ MẬT**, đã gitignore          |
-| `GOOGLE_CLOUD_LOCATION`         | không     | mặc định `asia-southeast1`                                        |
-| `GEMINI_MODEL`                  | không     | mặc định `gemini-2.5-flash`                                       |
-| `SUPABASE_SERVICE_ROLE_KEY`     | không     | chỉ cho script chạy ở máy (seed). **Không bao giờ đưa ra client** |
-| `VERTEX_ACCESS_TOKEN`           | không     | token có sẵn, dùng khi test thay cho việc tự ký từ file khoá       |
+| Biến                             | Bắt buộc? | Dùng để                                                             |
+| -------------------------------- | --------- | ------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`       | không     | đọc danh mục từ DB; trống thì dùng `src/data`                       |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`  | không     | như trên                                                            |
+| `GOOGLE_CLOUD_PROJECT`           | không     | Vertex AI cho nhận diện ảnh + chat + kiểm duyệt; trống thì mô phỏng |
+| `GOOGLE_APPLICATION_CREDENTIALS` | không     | đường dẫn khoá service account. **BÍ MẬT**, đã gitignore            |
+| `GOOGLE_CLOUD_LOCATION`          | không     | mặc định `asia-southeast1`                                          |
+| `GEMINI_MODEL`                   | không     | mặc định `gemini-2.5-flash`                                         |
+| `SUPABASE_SERVICE_ROLE_KEY`      | không     | chỉ cho script chạy ở máy (seed). **Không bao giờ đưa ra client**   |
+| `VERTEX_ACCESS_TOKEN`            | không     | token có sẵn, dùng khi test thay cho việc tự ký từ file khoá        |
 
 Gemini gọi qua **Vertex AI**, không phải AI Studio: endpoint mang project +
 location, xác thực bằng OAuth bearer token (hết hạn 1 giờ, `src/lib/vertex.ts`
@@ -226,8 +226,9 @@ giữ cache). Cả ba chỗ dùng Gemini — nhận diện ảnh, trợ lý chat
 đều đi qua `goiVertex()`. Dựng lần đầu: `docs/vertex-setup.md`, kiểm tra bằng
 `npm run vertex:check`.
 
-Đăng nhập dùng Supabase Auth: Google, Facebook, email + mật khẩu và magic link,
-gom hết trong `src/components/login-form.tsx`; mọi luồng đều quay về
+Đăng nhập dùng Supabase Auth: Google, Facebook, X, email + mật khẩu và magic
+link, gom hết trong `src/components/login-form.tsx` (thêm nút mới thì thêm vào
+mảng `NHA_CUNG_CAP`); mọi luồng đều quay về
 `/auth/callback`. Lỗi của Supabase là tiếng Anh, đổi sang tiếng Việt ở
 `src/lib/auth-loi.ts` — thêm luồng mới thì thêm câu ở đó, đừng hiện message thô.
 `src/middleware.ts` làm mới token mỗi
@@ -237,8 +238,16 @@ giữa chừng.
 Middleware cũng là cửa chặn: mọi đường dẫn trong `CAN_DANG_NHAP`
 (`/cong-dong`, `/bai`, `/bep`, `/cong-thuc`, `/ho-so`, `/doi-mat-khau`) khách
 không vào được, bị đá về `/dang-nhap?next=...`. Thêm trang cộng đồng mới thì
-thêm cả vào `CAN_DANG_NHAP` lẫn `matcher`. Đường dẫn `opengraph-image` cố tình
-được miễn — Zalo/Facebook phải lấy được ảnh thẻ.
+thêm vào `CAN_DANG_NHAP`. Đường dẫn `opengraph-image` cố tình được miễn —
+Zalo/Facebook phải lấy được ảnh thẻ.
+
+**`matcher` phải phủ mọi trang, đừng thu hẹp.** `layout.tsx` gọi
+`getCongThucCuaToi()` nên mọi trang đều gọi `auth.getUser()`; khi token hết hạn,
+thư viện tự làm mới và Supabase đánh dấu token cũ là đã dùng, mà Server
+Component không ghi được cookie nên token mới rơi mất — lần sau vào là mất
+phiên. Middleware là chỗ duy nhất ghi được cookie, nên nó phải chạy cả ở trang
+chủ và tủ lạnh. Thu hẹp `matcher` hôm 26/09 chính là thứ làm người dùng bị đăng
+xuất khi reload (sửa 29/09).
 
 Trong trang thì gọi `requireUser("/duong-dan")` (lớp thứ hai, phòng khi
 middleware sót); chỗ nào chỉ cần biết có ai đăng nhập hay không thì

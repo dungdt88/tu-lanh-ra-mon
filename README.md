@@ -35,12 +35,12 @@ File `.env.local` đã có sẵn ở gốc repo, chỉ cần điền 3 dòng. Ap
 để trống: chưa có Supabase thì đọc dữ liệu mock trong `src/data`, chưa có Gemini
 thì nhận diện ảnh chạy bản mô phỏng.
 
-| Biến                            | Lấy ở đâu                                             |
-| ------------------------------- | ----------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | supabase.com → project → Settings → API → Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | cùng trang, mục `anon public`                         |
-| `GOOGLE_CLOUD_PROJECT`          | console.cloud.google.com → Project ID (xem docs/vertex-setup.md) |
-| `GOOGLE_APPLICATION_CREDENTIALS`| đường dẫn khoá service account, mặc định `./gcp-key.json` |
+| Biến                             | Lấy ở đâu                                                        |
+| -------------------------------- | ---------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`       | supabase.com → project → Settings → API → Project URL            |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`  | cùng trang, mục `anon public`                                    |
+| `GOOGLE_CLOUD_PROJECT`           | console.cloud.google.com → Project ID (xem docs/vertex-setup.md) |
+| `GOOGLE_APPLICATION_CREDENTIALS` | đường dẫn khoá service account, mặc định `./gcp-key.json`        |
 
 Điền xong nhớ khởi động lại `npm run dev`.
 
@@ -136,9 +136,9 @@ giữa các mâm, và tính tổng thời gian theo kiểu nấu song song.
 Tab **Cộng đồng** là chỗ khoe mâm cơm: ảnh, tên món, nấu hết bao lâu, nguyên
 liệu đã dùng. Người khác thích, bình luận, theo dõi bếp nhà mình.
 
-- Bốn cách đăng nhập: Google, Facebook, email + mật khẩu (có đăng ký và quên mật
-  khẩu), hoặc link gửi qua email — mở mail ở máy khác thì nhập mã 6 số. Cách bật
-  từng cái: `docs/supabase-setup.md` mục 11.
+- Năm cách đăng nhập: Google, Facebook, X, email + mật khẩu (có đăng ký và quên
+  mật khẩu), hoặc link gửi qua email — mở mail ở máy khác thì nhập mã 6 số. Cách
+  bật từng cái: `docs/supabase-setup.md` mục 11.
 - **Cả phần cộng đồng phải đăng nhập mới xem được**, kể cả chỉ đọc. Khách bấm
   link chia sẻ sẽ vào trang đăng nhập, xong thì rơi đúng vào bài đó. Phần nấu
   nướng (trang chủ, tủ lạnh, quét tủ, trợ lý, chi tiết món) vẫn dùng được không

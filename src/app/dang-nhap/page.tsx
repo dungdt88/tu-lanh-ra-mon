@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { LoginForm } from "@/components/login-form";
 import { getCurrentUser } from "@/lib/auth";
+import { layProviderDangBat } from "@/lib/auth-settings";
+import { NHA_CUNG_CAP } from "@/lib/oauth-providers";
 
 const LOI: Record<string, string> = {
   "het-han":
@@ -24,6 +26,7 @@ export default async function LoginPage({
   if (user) redirect(target);
 
   const message = typeof loi === "string" ? LOI[loi] : undefined;
+  const daBat = await layProviderDangBat(NHA_CUNG_CAP.map(({ id }) => id));
 
   return (
     <div className="space-y-4">
@@ -39,7 +42,7 @@ export default async function LoginPage({
             {message}
           </p>
         )}
-        <LoginForm next={target} />
+        <LoginForm next={target} daBat={daBat} />
       </div>
     </div>
   );

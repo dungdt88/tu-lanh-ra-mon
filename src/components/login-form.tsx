@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { thongBaoLoi } from "@/lib/auth-loi";
+import { NHA_CUNG_CAP, type NhaCungCap } from "@/lib/oauth-providers";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +23,14 @@ const NHAN_VIEC: Record<ViecMatKhau, string> = {
   quen: "Gửi link đặt lại mật khẩu",
 };
 
-export function LoginForm({ next }: { next: string }) {
+export function LoginForm({
+  next,
+  daBat,
+}: {
+  next: string;
+  /** Provider đang bật trong Supabase; null = không hỏi được, cứ hiện hết. */
+  daBat: string[] | null;
+}) {
   const router = useRouter();
   const supabase = React.useMemo(() => createClient(), []);
 
@@ -74,7 +82,7 @@ export function LoginForm({ next }: { next: string }) {
     router.refresh();
   }
 
-  async function dangNhapOAuth(provider: "google" | "facebook") {
+  async function dangNhapOAuth(provider: NhaCungCap) {
     batDau();
     const { error } = await client.auth.signInWithOAuth({
       provider,
@@ -227,31 +235,29 @@ export function LoginForm({ next }: { next: string }) {
   return (
     <div className="space-y-5">
       <div className="space-y-2">
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          disabled={busy}
-          onClick={() => dangNhapOAuth("google")}
-        >
-          Tiếp tục với Google
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          disabled={busy}
-          onClick={() => dangNhapOAuth("facebook")}
-        >
-          Tiếp tục với Facebook
-        </Button>
+        {NHA_CUNG_CAP.filter(({ id }) => !daBat || daBat.includes(id)).map(
+          ({ id, ten }) => (
+            <Button
+              key={id}
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={busy}
+              onClick={() => dangNhapOAuth(id)}
+            >
+              Tiếp tục với {ten}
+            </Button>
+          ),
+        )}
       </div>
 
-      <div className="text-muted-foreground flex items-center gap-3 text-xs">
-        <span className="bg-border h-px flex-1" />
-        hoặc dùng email
-        <span className="bg-border h-px flex-1" />
-      </div>
+      {(!daBat || daBat.length > 0) && (
+        <div className="text-muted-foreground flex items-center gap-3 text-xs">
+          <span className="bg-border h-px flex-1" />
+          hoặc dùng email
+          <span className="bg-border h-px flex-1" />
+        </div>
+      )}
 
       <div className="bg-muted flex gap-1 rounded-full p-1">
         {(

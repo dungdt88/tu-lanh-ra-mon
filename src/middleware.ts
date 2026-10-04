@@ -25,8 +25,6 @@ function chanKhach(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
   const { response, user } = await updateSession(request);
 
-  // Chưa cấu hình Supabase thì không ai đăng nhập được - chặn lúc này chỉ làm
-  // app chết cứng, để trang tự hiện lời nhắn "chưa cấu hình" thì rõ hơn.
   if (!hasSupabase || user) return response;
 
   const { pathname, search } = request.nextUrl;
@@ -47,17 +45,20 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Chỉ những trang thực sự cần biết ai đang đăng nhập. Mỗi lần chạy
-  // middleware là một lượt gọi mạng tới Supabase, mà trang chủ, tủ lạnh và
-  // trợ lý vẫn dùng được khi chưa đăng nhập.
+  /**
+   * Phải phủ MỌI trang, không chỉ phần cộng đồng.
+   *
+   * `layout.tsx` gọi `getCongThucCuaToi()` trên mọi trang, tức là mọi trang đều
+   * gọi `auth.getUser()`. Khi access token hết hạn, thư viện tự đi làm mới và
+   * nhận refresh token mới — nhưng Server Component không ghi được cookie nên
+   * token mới rơi mất, còn token cũ thì Supabase đã đánh dấu "đã dùng". Lần
+   * sau vào là mất phiên. Middleware là chỗ duy nhất ghi được cookie mới, nên
+   * nó phải chạy ở trang chủ, tủ lạnh, trang món... chứ không riêng cộng đồng.
+   *
+   * Đây là lý do thu hẹp matcher (bản 26/09) làm người dùng bị đăng xuất khi
+   * reload — đừng thu hẹp lại lần nữa.
+   */
   matcher: [
-    "/cong-dong/:path*",
-    "/bai/:path*",
-    "/bep/:path*",
-    "/cong-thuc/:path*",
-    "/ho-so/:path*",
-    "/doi-mat-khau",
-    "/dang-nhap",
-    "/auth/:path*",
+    "/((?!_next/static|_next/image|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg|webp|gif|mp4|woff2?)$).*)",
   ],
 };
