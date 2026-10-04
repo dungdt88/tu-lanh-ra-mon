@@ -371,12 +371,15 @@ không cần đi qua server action. File này chặn ở database:
 - Bỏ quyền sửa bài đăng (app không có chức năng sửa bài), và chỉ cho ghi đúng
   các cột `dangBai` ghi - không ai tự đặt `like_count` / `comment_count`.
 
-Chạy tiếp `supabase/migrations/0006_ho_so_theo_cot.sql` ngay sau đó. 0005 làm
-view `public_profiles` trả về rỗng (bài đăng mất tên người đăng); 0006 sửa lại
-bằng quyền theo cột: ai cũng đọc được `handle`, `display_name`, `bio`,
-`avatar_url`, còn `household_size` thì không ai đọc được qua API. Sau bước này
-`npm run db:check` với anon key báo `profiles` bị chặn là đúng (nó hỏi
-`select *`).
+Chạy tiếp `supabase/migrations/0006_ho_so_theo_cot.sql` ngay sau đó: thay cách
+che `household_size` của 0005 bằng quyền theo cột - ai cũng đọc được `handle`,
+`display_name`, `bio`, `avatar_url`, còn `household_size` thì không ai đọc được
+qua API, kể cả qua view. Sau bước này `npm run db:check` với anon key báo
+`profiles` bị chặn là đúng (nó hỏi `select *`).
+
+Rồi chạy `supabase/migrations/0007_bu_ho_so.sql`: thêm hồ sơ cho tài khoản nào
+còn thiếu (bài của họ hiện "Người nấu ẩn danh") và gắn lại trigger đăng ký.
+Cuối file có câu kiểm tra - số tài khoản và số hồ sơ phải bằng nhau.
 
 Còn hở: bài, bình luận và công thức ghi thẳng qua API vẫn không qua kiểm duyệt
 và không đối chiếu id. Chặn hẳn thì phải chuyển việc ghi sang server bằng
