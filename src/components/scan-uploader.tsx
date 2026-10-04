@@ -273,7 +273,27 @@ export function ScanUploader({ onDone, compact, resetAfterDone }: Props) {
         </div>
       )}
 
-      {detected && (
+      {/* Ảnh không có nguyên liệu nào (chụp nhầm, tủ trống, ảnh tối…): nói thẳng
+          là không thấy, thay vì "Thấy 0 nguyên liệu" kèm nút xác nhận rỗng */}
+      {detected && detected.length === 0 && (
+        <div className="bg-muted/50 flex items-start gap-2 rounded-xl border p-3">
+          <AlertTriangle className="text-muted-foreground mt-0.5 size-4 shrink-0" />
+          <div className="flex-1 space-y-2">
+            <p className="text-sm font-medium">
+              Không thấy nguyên liệu nào trong ảnh
+            </p>
+            <p className="text-muted-foreground text-xs">
+              Thử chụp gần hơn, đủ sáng, mở hết cửa tủ — hoặc điền tay bên dưới.
+            </p>
+            <Button variant="outline" size="sm" onClick={() => moNguonAnh()}>
+              <RefreshCw /> {laCamTay ? "Chụp lại" : "Chọn ảnh khác"}
+            </Button>
+            <AddIngredient placeholder="vd: trứng, cà chua, rau muống…" />
+          </div>
+        </div>
+      )}
+
+      {detected && detected.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center gap-1.5">
             <Sparkles className="text-primary size-4" />
