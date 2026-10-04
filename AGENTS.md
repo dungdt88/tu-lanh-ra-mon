@@ -31,8 +31,11 @@ Chạy chung máy Lightsail với Mika CMS (Singapore, `18.136.67.209`), theo
   rảnh ~92 MiB, đỉnh ~254 MiB khi 10 request song song có sinh ảnh OG.
 - `NEXT_PUBLIC_*` nhúng lúc build nên là **build arg** (biến repo), không phải
   biến lúc chạy. Đổi chúng thì phải build lại.
-- Vertex chỉ bật khi có file khoá `/home/ubuntu/tu-lanh-ra-mon/gcp-key.json`
-  trên máy; không có thì app chạy bản mô phỏng.
+- Khoá Vertex là file `/home/ubuntu/tu-lanh-ra-mon/gcp-key.json` trên máy,
+  chủ sở hữu uid 1001 (user trong container), quyền 400. **Thiếu file thì
+  deploy dừng** trước khi đụng container đang chạy. File trên máy không kín
+  hơn biến môi trường — ai có quyền deploy đều đọc được cả hai.
+- Deploy chỉ xanh khi container báo `healthy` trong ~90 giây.
 - Máy dùng chung: **không** `docker image prune` khi chưa lọc theo nhãn repo,
   **không** publish cổng ra `0.0.0.0`, health check gọi `127.0.0.1`.
 - `SUPABASE_SERVICE_ROLE_KEY` không bao giờ lên máy deploy — app chạy không

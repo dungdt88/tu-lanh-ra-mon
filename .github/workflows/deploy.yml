@@ -54,8 +54,10 @@ jobs:
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ vars.DEPLOY_HOST }}
-          username: ${{ vars.DEPLOY_USER }}
+          # Secrets, not variables: Actions logs of a public repo are world-readable,
+          # and only secrets are masked there.
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             set -e
@@ -63,17 +65,11 @@ jobs:
 
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-            # Vertex chỉ bật khi đã đặt khoá service account lên máy. Không có
-            # khoá thì app chạy bản mô phỏng, như khi .env.local để trống.
+            # Thiếu khoá thì dừng deploy ở đây, trước khi đụng container đang
+            # chạy - chứ không lặng lẽ chạy bản không có Vertex. Chủ ý chạy bản
+            # mô phỏng thì bỏ hẳn các dòng Vertex trong docker run.
             VERTEX_KEY=/home/ubuntu/tu-lanh-ra-mon/gcp-key.json
-            VERTEX_FLAGS=""
-            if [ -f "$VERTEX_KEY" ]; then
-              VERTEX_FLAGS="-v $VERTEX_KEY:/run/secrets/gcp-key.json:ro \
-                -e GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcp-key.json \
-                -e GOOGLE_CLOUD_PROJECT=${{ vars.GOOGLE_CLOUD_PROJECT }} \
-                -e GOOGLE_CLOUD_LOCATION=${{ vars.GOOGLE_CLOUD_LOCATION }} \
-                -e GEMINI_MODEL=${{ vars.GEMINI_MODEL }}"
-            fi
+            test -f "$VERTEX_KEY"
 
             docker stop tu-lanh-ra-mon || true
             docker rm tu-lanh-ra-mon || true
@@ -89,8 +85,26 @@ jobs:
               --cpus=0.5 \
               --log-opt max-size=10m --log-opt max-file=3 \
               -e NODE_OPTIONS=--max-old-space-size=384 \
-              $VERTEX_FLAGS \
+              -v "$VERTEX_KEY":/secrets/gcp-sa.json:ro \
+              -e GOOGLE_APPLICATION_CREDENTIALS=/secrets/gcp-sa.json \
+              -e GOOGLE_CLOUD_PROJECT=${{ vars.GOOGLE_CLOUD_PROJECT }} \
+              -e GOOGLE_CLOUD_LOCATION=${{ vars.GOOGLE_CLOUD_LOCATION }} \
+              -e GEMINI_MODEL=${{ vars.GEMINI_MODEL }} \
               ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+            # A crash-looping container must fail the deploy, not ship green.
+            # `if ... fi` rather than `[ ... ] && break`: a false && as the last
+            # command of the loop body trips set -e on the first iteration.
+            STATUS=starting
+            for i in $(seq 1 30); do
+              STATUS=$(docker inspect -f '{{.State.Health.Status}}' tu-lanh-ra-mon)
+              if [ "$STATUS" = healthy ]; then break; fi
+              sleep 3
+            done
+            if [ "$STATUS" != healthy ]; then
+              docker logs --tail 50 tu-lanh-ra-mon
+              exit 1
+            fi
 
             # Prune only THIS project's old images. An unscoped `prune -af` would
             # delete other projects' rollback targets from the shared host.
