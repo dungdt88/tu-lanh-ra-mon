@@ -7,6 +7,7 @@ import { TU_DO_MAX_LEN, danhDauTuDo } from "@/lib/ingredient-id";
 import { kiemDuyetAnh, kiemDuyetVanBan } from "@/lib/moderation";
 import { getCatalog } from "@/lib/repo/catalog";
 import { getCongThuc } from "@/lib/repo/recipe";
+import { CONG_DONG_BAT } from "@/lib/tinh-nang";
 import { ANH_MON_BUCKET, ANH_MON_MAX_BYTES, ANH_MON_MIME } from "@/lib/storage";
 import { capitalize, normalizeText } from "@/lib/text";
 import { createClient } from "@/lib/supabase/server";
@@ -26,6 +27,8 @@ type Client = SupabaseClient<Database, "tlrm">;
 async function taiKhoanHienTai(): Promise<
   { supabase: Client; userId: string } | { error: string }
 > {
+  if (!CONG_DONG_BAT) return { error: "Tính năng cộng đồng đang tạm tắt." };
+
   const supabase = await createClient();
   if (!supabase) return { error: "Chưa cấu hình Supabase." };
 
@@ -215,11 +218,11 @@ export async function binhLuan(
   if (!body) return { error: "Chưa viết gì." };
   if (body.length > 1000) return { error: "Bình luận dài quá." };
 
-  const duyet = await kiemDuyetVanBan("binh-luan", body);
-  if (!duyet.ok) return { error: duyet.lyDo ?? "Bình luận không phù hợp." };
-
   const account = await taiKhoanHienTai();
   if ("error" in account) return account;
+
+  const duyet = await kiemDuyetVanBan("binh-luan", body);
+  if (!duyet.ok) return { error: duyet.lyDo ?? "Bình luận không phù hợp." };
 
   const { error } = await account.supabase
     .from("post_comments")

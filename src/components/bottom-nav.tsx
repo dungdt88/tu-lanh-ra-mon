@@ -11,13 +11,16 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePantry } from "@/lib/pantry-store";
+import { CONG_DONG_BAT } from "@/lib/tinh-nang";
 
 const ITEMS = [
   { href: "/", label: "Hôm nay", icon: UtensilsCrossed },
   { href: "/quet", label: "Quét tủ", icon: Camera },
   { href: "/tu-lanh", label: "Tủ lạnh", icon: Refrigerator },
   { href: "/tro-ly", label: "Trợ lý", icon: Sparkles },
-  { href: "/cong-dong", label: "Cộng đồng", icon: Users },
+  ...(CONG_DONG_BAT
+    ? [{ href: "/cong-dong", label: "Cộng đồng", icon: Users }]
+    : []),
 ];
 
 export function BottomNav() {
@@ -29,7 +32,7 @@ export function BottomNav() {
       className="bg-background/95 fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-lg border-t backdrop-blur md:max-w-2xl md:border-x"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <ul className="grid grid-cols-5">
+      <ul className={cn("grid", CONG_DONG_BAT ? "grid-cols-5" : "grid-cols-4")}>
         {ITEMS.map(({ href, label, icon: Icon }) => {
           const active =
             href === "/" ? pathname === "/" : pathname.startsWith(href);

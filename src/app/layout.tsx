@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { CatalogProvider } from "@/lib/catalog-context";
 import { getCatalog } from "@/lib/repo/catalog";
 import { getCongThucCuaToi } from "@/lib/repo/recipe";
+import { CONG_DONG_BAT } from "@/lib/tinh-nang";
 import { SITE_URL } from "@/lib/site";
 
 const MO_TA =
@@ -47,7 +48,8 @@ export default async function RootLayout({
 }>) {
   const [catalog, congThuc] = await Promise.all([
     getCatalog(),
-    getCongThucCuaToi(),
+    // Thẻ món của công thức nhà mình dẫn tới /cong-thuc, trang đang bị ẩn.
+    CONG_DONG_BAT ? getCongThucCuaToi() : [],
   ]);
 
   // Công thức nhà mình đi chung một rổ với danh mục để máy gợi ý chấm điểm nó

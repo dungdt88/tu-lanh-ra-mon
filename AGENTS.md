@@ -258,6 +258,12 @@ mảng `NHA_CUNG_CAP`); mọi luồng đều quay về
 request; Server Component không set được cookie nên bỏ middleware là phiên rụng
 giữa chừng.
 
+**Cộng đồng đang tắt** (`CONG_DONG_BAT = false` trong `src/lib/tinh-nang.ts`):
+middleware đưa mọi đường dẫn cộng đồng + tài khoản về trang chủ, tab Cộng
+đồng ẩn, server action từ chối, công thức nhà mình không vào gợi ý. Dữ liệu
+trong Supabase giữ nguyên. Bật lại: đổi thành `true` rồi push. Phần dưới mô tả
+lúc nó bật.
+
 Middleware cũng là cửa chặn: mọi đường dẫn trong `CAN_DANG_NHAP`
 (`/cong-dong`, `/bai`, `/bep`, `/cong-thuc`, `/ho-so`, `/doi-mat-khau`) khách
 không vào được, bị đá về `/dang-nhap?next=...`. Thêm trang cộng đồng mới thì

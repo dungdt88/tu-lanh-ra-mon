@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { kiemDuyetVanBan } from "@/lib/moderation";
 import { getCatalog } from "@/lib/repo/catalog";
 import { createClient } from "@/lib/supabase/server";
+import { CONG_DONG_BAT } from "@/lib/tinh-nang";
 import { capitalize, normalizeText } from "@/lib/text";
 import type { Dish, MealSlot } from "@/lib/types";
 
@@ -69,6 +70,8 @@ export async function luuCongThuc(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  if (!CONG_DONG_BAT) return { error: "Tính năng cộng đồng đang tạm tắt." };
+
   const supabase = await createClient();
   if (!supabase) return { error: "Chưa cấu hình Supabase." };
 
@@ -202,6 +205,8 @@ export async function xoaCongThuc(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  if (!CONG_DONG_BAT) return { error: "Tính năng cộng đồng đang tạm tắt." };
+
   const supabase = await createClient();
   if (!supabase) return { error: "Chưa cấu hình Supabase." };
 

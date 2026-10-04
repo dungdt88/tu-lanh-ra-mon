@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 import { hasSupabase } from "@/lib/supabase/env";
+import { CONG_DONG_BAT, laDuongDanCongDong } from "@/lib/tinh-nang";
 
 /** Phần cộng đồng: phải đăng nhập mới xem được, kể cả chỉ đọc. */
 const CAN_DANG_NHAP = [
@@ -25,22 +26,29 @@ function chanKhach(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
   const { response, user } = await updateSession(request);
 
+  if (!CONG_DONG_BAT && laDuongDanCongDong(request.nextUrl.pathname)) {
+    return chuyenVe(request, response, "/");
+  }
+
   if (!hasSupabase || user) return response;
 
   const { pathname, search } = request.nextUrl;
   if (!chanKhach(pathname)) return response;
 
-  const dich = request.nextUrl.clone();
-  dich.pathname = "/dang-nhap";
-  dich.search = "";
-  dich.searchParams.set("next", `${pathname}${search}`);
+  const next = encodeURIComponent(`${pathname}${search}`);
+  return chuyenVe(request, response, `/dang-nhap?next=${next}`);
+}
 
+function chuyenVe(
+  request: NextRequest,
+  response: NextResponse,
+  dich: string,
+): NextResponse {
+  const chuyenHuong = NextResponse.redirect(new URL(dich, request.url));
   // Chuyển hướng mà bỏ cookie vừa làm mới thì lần sau lại phải làm mới nữa.
-  const chuyenHuong = NextResponse.redirect(dich);
   response.cookies
     .getAll()
     .forEach((cookie) => chuyenHuong.cookies.set(cookie));
-
   return chuyenHuong;
 }
 
